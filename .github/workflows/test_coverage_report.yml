@@ -27,6 +27,7 @@ jobs:
           python-version: "3.11"
 
       - name: Create venv and install
+        working-directory: backend
         run: |
           uv venv
           uv pip install -e ".[dev]"
@@ -34,10 +35,11 @@ jobs:
 
       - name: Authenticate to registry and pull test MDB
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
           docker pull ghcr.io/cbiit/test-mdb-amd:neo4.4
 
       - name: Write compose config, start docker, run tests with coverage
+        working-directory: backend
         run: |
           cat << EOF > compose-mdb.yml
           services:
