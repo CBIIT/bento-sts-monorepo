@@ -9,7 +9,7 @@ on:
       environment:
         description: 'Which account the ECR repository is in'
         type: choice
-        default: fnl-leidos
+        default: ECR-cbiit-cloudone
         options:
           - fnl-leidos
           - ECR-cbiit-cloudone
@@ -23,7 +23,17 @@ on:
         required: true
         type: boolean
         default: true
-run-name: "Build Docker Images for STS"
+      twistlock_scan:
+        description: "Run Twistlock Scan"
+        required: true
+        type: boolean
+        default: true
+      twistlock_address:
+        description: "Optional Twistlock console URL for Prefect params"
+        required: false
+        default: ""
+        type: string
+run-name: "Build to ${{ inputs.environment }} (Trivy: ${{ inputs.trivy_scan }}, Twistlock: ${{ inputs.twistlock_scan }})"
 
 jobs:
 
@@ -146,6 +156,53 @@ jobs:
           echo "Pushing: $IMAGE_NAME"
           docker push $IMAGE_NAME
 
+      # Registry round-trip check (avoids relying on ecr:DescribeImages permission).
+      - name: Pull image from ECR
+        if: ${{ inputs.twistlock_scan == true }}
+        run: |
+          echo "Pulling: $IMAGE_NAME"
+          docker pull "$IMAGE_NAME"
+
+      - name: Set up Python
+        if: ${{ inputs.twistlock_scan == true }}
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install uv
+        if: ${{ inputs.twistlock_scan == true }}
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.5.10"
+
+      - name: Install Prefect CLI
+        if: ${{ inputs.twistlock_scan == true }}
+        run: uv pip install --system "prefect==3.3.4"
+
+      - name: Run Twistlock scan deployment
+        if: ${{ inputs.twistlock_scan == true }}
+        env:
+          PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
+          PREFECT_API_URL: ${{ secrets.PREFECT_API_URL_C1 }}
+          TWISTLOCK_ADDRESS: ${{ inputs.twistlock_address }}
+        run: |
+          set -euo pipefail
+          IMAGE_REF="$IMAGE_NAME"
+          if [ -n "${TWISTLOCK_ADDRESS:-}" ]; then
+            PARAMS=$(jq -n \
+              --arg image_ref "$IMAGE_REF" \
+              --arg twistlock_address "$TWISTLOCK_ADDRESS" \
+              '{image_ref: $image_ref, twistlock_address: $twistlock_address}')
+          else
+            PARAMS=$(jq -n \
+              --arg image_ref "$IMAGE_REF" \
+              '{image_ref: $image_ref}')
+          fi
+          echo "PARAMS=$PARAMS"
+          uv run prefect deployment run twistlock-scan/twistlock-scan \
+            --params "$PARAMS" \
+            --watch \
+            --watch-interval 30
   # ──────────────────────────────────────────────
   # Job 3: Tag the commit only after all builds pass
   # ──────────────────────────────────────────────
