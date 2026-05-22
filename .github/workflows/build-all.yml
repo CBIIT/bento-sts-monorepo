@@ -167,7 +167,7 @@ jobs:
         if: ${{ inputs.twistlock_scan == true }}
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: "3.11"
 
       - name: Install uv
         if: ${{ inputs.twistlock_scan == true }}
