@@ -177,7 +177,7 @@ jobs:
 
       - name: Install Prefect CLI
         if: ${{ inputs.twistlock_scan == true }}
-        run: uv pip install --system "prefect==3.3.4"
+        run: uv pip install --system "prefect==3.3.4" "importlib-metadata>=8,<9"
 
       - name: Run Twistlock scan deployment
         if: ${{ inputs.twistlock_scan == true }}
