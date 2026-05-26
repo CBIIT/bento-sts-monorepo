@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Request
 from typing import List
+from threading import Lock
 from ..dependencies import paging_params_tags
 from ..converters import neo_to_py
 from ..pymodels import Tag
@@ -7,7 +8,11 @@ from ..pymodels import Tag
 router = APIRouter(
     prefix="/tags",
     tags=["tags"],
-    )
+)
+
+# Queue-like serialization for heavy /tags list requests.
+# Only one /v2/tags request is processed at a time per app instance.
+_tags_list_lock = Lock()
 
 
 @router.get(
@@ -26,10 +31,11 @@ def tags_get(request: Request) -> List[Tag]:
         f"SKIP {request.state.skip} " if request.state.skip else "",
         f"LIMIT {request.state.limit}" if request.state.limit else ""])
     ret = []
-    rows = request.state.mdb.get_with_statement(
-        stmt,
-        {}
-    )
+    with _tags_list_lock:
+        rows = request.state.mdb.get_with_statement(
+            stmt,
+            {}
+        )
     for row in rows:
         ret.append(neo_to_py(row['tag']))
     return ret
