@@ -10,15 +10,14 @@ RUN apk update && apk upgrade --no-cache && \
     apk add --no-cache 'openssl>=3.5.6' && \
     apk add --no-cache -X https://dl-cdn.alpinelinux.org/alpine/edge/main 'curl>=8.19.0'
 
-# Install git for pip to clone from GitHub
-RUN apk add --no-cache git
-
 # Replace pip with uv and remove pip to eliminate PRISMA-2022-0168
 RUN pip install --no-cache-dir uv && \
     pip uninstall -y pip
 
-# Install bento-sts-fastapi from GitHub using uv (no pip in final image)
-RUN uv pip install --no-cache --system git+https://github.com/CBIIT/bento-sts-fastapi.git@main
+# Install the checked-out backend source from the Docker build context.
+COPY pyproject.toml README.md ./
+COPY src ./src
+RUN uv pip install --no-cache --system .
 
 ENV PYTHONUNBUFFERED=1
 
