@@ -129,7 +129,6 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build --no-cache \
-            --build-arg BENTO_STS_REF=${{ github.ref_name }} \
             -t $IMAGE_NAME \
             -f ${{ matrix.dockerfile }} \
             ${{ matrix.context }}
