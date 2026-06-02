@@ -56,16 +56,9 @@ jobs:
 
       - name: Extract branch name and set image tag
         id: set_tag
-        env:
-          BUILD_REF: ${{ github.ref_name }}
         run: |
-          # Docker/ECR image tags cannot contain slashes, so sanitize branch refs like feature/foo.
-          BRANCH_NAME=$(echo "$BUILD_REF" \
-            | sed 's|^refs/heads/||' \
-            | sed 's|^refs/tags/||' \
-            | sed 's|[^A-Za-z0-9_.-]|-|g')
-          echo "Build ref is: $BUILD_REF"
-          echo "Image tag prefix is: $BRANCH_NAME"
+          BRANCH_NAME=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+          echo "Current branch is: $BRANCH_NAME"
           git fetch --tags --force --quiet
           #tag=$(git tag -l $BRANCH_NAME* | sort -V | tail -1)
           tag=$(git ls-remote --tags origin "$BRANCH_NAME.*" \
