@@ -18,7 +18,8 @@ RUN pip install --no-cache-dir uv && \
     pip uninstall -y pip
 
 # Install bento-sts-fastapi from GitHub using uv (no pip in final image)
-RUN uv pip install --no-cache --system git+https://github.com/CBIIT/bento-sts-fastapi.git@main
+ARG BENTO_STS_REF=main
+RUN uv pip install --no-cache --system "git+https://github.com/CBIIT/bento-sts-fastapi.git@${BENTO_STS_REF}"
 
 ENV PYTHONUNBUFFERED=1
 
