@@ -1,4 +1,4 @@
-name: Build STS Image
+name: Build test STS Image
 permissions: 
   contents: write
   id-token: write
