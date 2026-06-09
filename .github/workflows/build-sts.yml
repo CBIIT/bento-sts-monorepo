@@ -52,12 +52,19 @@ jobs:
         
     steps:
 
-    - name: Check out code
+    - name: Check out private workflow repo
       uses: actions/checkout@v4
       with:
 #       ref: ${{ env.CODE_BRANCH }}
 #       ref: ${{ github.ref_name }}
         submodules: true
+
+    - name: Check out public bento-mdb
+      uses: actions/checkout@v4
+      with:
+        repository: CBIIT/bento-mdb
+        ref: main
+        path: bento-mdb
 
     - name: Extract branch name and set tag image
       id: extract_branch
@@ -99,7 +106,7 @@ jobs:
         REGISTRY_URL: ${{ secrets.AWS_ECR_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
         STS_IMAGE_NAME: ${{ secrets.AWS_ECR_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY}}:${{ env.IMAGE_TAG }}
       run: |
-        cd devops/dockerfiles/sts/ && docker build -t $STS_IMAGE_NAME .
+        cd bento-mdb/devops/dockerfiles/sts/ && docker build -t $STS_IMAGE_NAME .
         #docker build --no-cache -t $STS_IMAGE_NAME -f devops/dockerfiles/sts/Dockerfile .
         
 #    - name: Run Trivy vulnerability scanner
@@ -126,7 +133,7 @@ jobs:
         STS_FAST_API_IMAGE_NAME: ${{ secrets.AWS_ECR_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_STS_REPOSITORY}}:${{ env.IMAGE_TAG }}
       run: |
         #cd devops/dockerfiles/sts-fast-api/ && docker build -t $STS_FAST_API_IMAGE_NAME .
-        docker build --no-cache -t $STS_FAST_API_IMAGE_NAME -f devops/dockerfiles/sts-fast-api/Dockerfile .
+        docker build --no-cache -t $STS_FAST_API_IMAGE_NAME -f bento-mdb/devops/dockerfiles/sts-fast-api/Dockerfile bento-mdb
 
     - name: Run Trivy vulnerability scanner
       id: trivy-fast-api-scan
