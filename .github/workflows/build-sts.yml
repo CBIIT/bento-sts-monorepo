@@ -3,6 +3,11 @@ permissions:
   contents: write
   id-token: write
 on:
+  push:
+    branches:
+      - bento-mdb-workflow
+    paths:
+      - ".github/workflows/build-sts.yml"
   workflow_dispatch:
     inputs:
       environment:
@@ -35,12 +40,12 @@ on:
         required: false
         default: ""
         type: string
-run-name: "Build to ${{ inputs.environment }} (Trivy: ${{ inputs.trivy_scan }}, Twistlock: ${{ inputs.twistlock_scan }}, Target: ${{ inputs.scan_target }})"
+run-name: "Build to ${{ inputs.environment || 'fnl-leidos' }} (Trivy: ${{ inputs.trivy_scan || 'false' }}, Twistlock: ${{ inputs.twistlock_scan || 'false' }}, Target: ${{ inputs.scan_target || 'fast-api' }})"
 jobs:
   build:
     name: Build Image
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment: ${{ inputs.environment || 'fnl-leidos' }}
     env:
         ECR_REPOSITORY: crdc-mdb-sts
         ECR_STS_REPOSITORY: crdc-mdb-sts-fast-api
