@@ -33,6 +33,11 @@ on:
         required: false
         type: boolean
         default: false
+      bento_mdb_ref:
+        description: "CBIIT/bento-mdb ref to run against"
+        required: false
+        type: string
+        default: "main"
 
 jobs:
   generate-changelog:
@@ -49,3 +54,4 @@ jobs:
       log_level: ${{ github.event.inputs.log_level || 'info' }}
       dry_run: ${{ fromJson(github.event.inputs.dry_run || 'false') }}
       no_commit: ${{ fromJson(github.event.inputs.no_commit || 'false') }}
+      bento_mdb_ref: ${{ github.event.inputs.bento_mdb_ref || 'main' }}

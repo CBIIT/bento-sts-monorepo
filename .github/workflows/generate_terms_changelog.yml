@@ -32,6 +32,11 @@ on:
         required: false
         type: boolean
         default: false
+      bento_mdb_ref:
+        description: "CBIIT/bento-mdb ref to run against"
+        required: false
+        type: string
+        default: "main"
     secrets:
       PREFECT_API_KEY:
         required: false
@@ -58,10 +63,18 @@ jobs:
     outputs:
       changelog_files: ${{ steps.update-terms.outputs.s3_keys }}
     steps:
-      - name: Checkout repository
+      - name: Checkout private workflow repo
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744
         with:
           ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Checkout public bento-mdb
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744
+        with:
+          repository: CBIIT/bento-mdb
+          ref: ${{ inputs.bento_mdb_ref }}
+          path: bento-mdb
 
       - name: Set up Python
         uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c
@@ -74,12 +87,14 @@ jobs:
           version: "0.5.10"
 
       - name: Install dependencies and project
+        working-directory: bento-mdb
         run: |
           uv pip install --system -e .
           uv sync --all-extras --dev
 
       - name: Update terms
         id: update-terms
+        working-directory: bento-mdb
         env:
           PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
           PREFECT_API_URL: ${{ secrets.PREFECT_API_URL }}
