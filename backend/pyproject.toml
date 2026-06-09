@@ -1,6 +1,6 @@
 [project]
 name = "bento-sts"
-version = "2.0.0"
+version = "2.5.0"
 description = "FastAPI implementation of Simple Terminology Service"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -9,6 +9,7 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License"
 ]
 dependencies = [
+    "cachetools>=5.0",
     "cryptography>=46.0.5",
     "fastapi[standard]>=0.118.0",
     "neo4j>=6.0.2",
@@ -26,6 +27,7 @@ dev = [
     "flake8>=7.3.0",
     "jedi>=0.19.2",
     "openapi-python-client>=0.26.1",
+    "pytest-cov>=7.0.0",
     "pytest-docker>=3.2.3",
     "rope>=1.14.0",
     "yapf>=0.43.0",

@@ -1,0 +1,177 @@
+name: Update MDB and Data Hub Terms
+
+permissions:
+  contents: read
+  id-token: write
+
+on:
+  workflow_call:
+    inputs:
+      changelog_files:
+        description: "JSON array of changelog files to update"
+        required: true
+        type: string
+      mdb_id:
+        description: "ID of MDB to update"
+        required: true
+        type: string
+      log_level:
+        description: "Log level"
+        required: false
+        type: string
+        default: "info"
+      dry_run:
+        description: "Dry run flag"
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      PREFECT_API_KEY:
+        required: true
+      PREFECT_API_URL:
+        required: true
+      AWS_CHANGELOG_ROLE_ARN:
+        required: true
+      AWS_REGION:
+        required: true
+      S3_CHANGELOG_BUCKET:
+        required: true
+
+jobs:
+  update-mdb:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_CHANGELOG_ROLE_ARN }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      S3_BUCKET: ${{ secrets.S3_CHANGELOG_BUCKET }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744
+        with: # latest version of branch to get files committed in prev job
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Install Python
+        uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86
+        with:
+          version: "0.5.10"
+
+      - name: Install dependencies and project
+        run: |
+          uv pip install --system -e .
+          uv sync --all-extras --dev
+
+      - name: AWS OIDC Authentication
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502  # v4.0.2
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: ${{ github.actor }}
+          role-duration-seconds: 21600
+
+      - name: Run liquibase update on changelog files
+        id: liquibase-update
+        env:
+          PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
+          PREFECT_API_URL: ${{ secrets.PREFECT_API_URL }}
+        run: |
+          echo "Processing the following changelog files:"
+          echo '${{ inputs.changelog_files }}' | jq -r '.[]'
+          
+          HAS_FAILURE=false
+
+          for file in $(echo '${{ inputs.changelog_files }}' | jq -r '.[]'); do
+            echo "Running $file"
+
+            if ! aws s3 ls "s3://${S3_BUCKET}/${file}" > /dev/null 2>&1; then
+              echo "Warning: S3 key $file does not exist, skipping"
+              continue
+            fi
+
+            PARAMS=$(jq -n \
+            --arg key "$file" \
+            --arg id "${{ inputs.mdb_id }}" \
+            --arg bucket "${S3_BUCKET}" \
+            --arg log_level "${{ inputs.log_level || 'info' }}" \
+            --argjson dry_run "${{ inputs.dry_run || false }}" \
+            '{
+              "key": $key,
+              "mdb_id": $id,
+              "bucket": $bucket,
+              "log_level": $log_level,
+              "dry_run": $dry_run
+            }')
+
+            echo "Running deployment for $file..."
+            DEPLOY_OUTPUT=$(uv run prefect deployment run liquibase-update/liquibase-update --params "$PARAMS" 2>&1)
+            echo "$DEPLOY_OUTPUT"
+
+            RUN_UUID=$(echo "$DEPLOY_OUTPUT" | grep -oE 'UUID: [0-9a-fA-F-]+' | awk '{print $2}')
+
+            if [ -z "$RUN_UUID" ]; then
+              echo "ERROR: Could not extract flow run UUID for $file"
+              HAS_FAILURE=true
+              continue
+            fi
+
+            echo "Polling flow run $RUN_UUID until completion (poll interval: 30s, timeout: 4h)..."
+            FLOW_SUCCESS=false
+            CURL_FAILURES=0
+            MAX_CURL_FAILURES=5
+            TIMEOUT_SECS=14400
+            ELAPSED=0
+            while [ "$ELAPSED" -lt "$TIMEOUT_SECS" ]; do
+              RESPONSE=$(curl -s \
+                "${PREFECT_API_URL}/flow_runs/${RUN_UUID}" \
+                -H "Authorization: Bearer ${PREFECT_API_KEY}" \
+                -H "Content-Type: application/json")
+              STATE=$(echo "$RESPONSE" | jq -r '.state.type // empty')
+
+              if [ -z "$STATE" ]; then
+                CURL_FAILURES=$((CURL_FAILURES + 1))
+                echo "WARNING: Could not retrieve flow run state (attempt $CURL_FAILURES/$MAX_CURL_FAILURES)"
+                if [ "$CURL_FAILURES" -ge "$MAX_CURL_FAILURES" ]; then
+                  echo "ERROR: Exceeded max curl failures for $file"
+                  break
+                fi
+              else
+                CURL_FAILURES=0
+                echo "Flow run state: $STATE"
+                case "$STATE" in
+                  COMPLETED)
+                    FLOW_SUCCESS=true
+                    break
+                    ;;
+                  FAILED|CRASHED|CANCELLED|CANCELLING)
+                    break
+                    ;;
+                esac
+              fi
+
+              sleep 30
+              ELAPSED=$((ELAPSED + 30))
+            done
+
+            if [ "$ELAPSED" -ge "$TIMEOUT_SECS" ]; then
+              echo "ERROR: Flow run for $file timed out after 4 hours"
+            fi
+
+            if [ "$FLOW_SUCCESS" = true ]; then
+              echo "Flow run for $file completed successfully."
+            else
+              echo "ERROR: Flow run for $file failed with state: $STATE"
+              HAS_FAILURE=true
+            fi
+          done
+
+          if [ "$HAS_FAILURE" = true ]; then
+            echo "One or more flow runs failed."
+            exit 1
+          fi
+
+          echo "All flow runs completed successfully!"
