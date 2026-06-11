@@ -5,6 +5,18 @@ EXPOSE 8000/tcp
 
 WORKDIR /app
 
+RUN --mount=type=secret,id=nci_ca,required=false \
+    set -eux; \
+    if [ -f /run/secrets/nci_ca ]; then \
+        cp /run/secrets/nci_ca /usr/local/share/ca-certificates/nci-ca.crt; \
+        update-ca-certificates; \
+    fi; \
+    apk upgrade --no-cache; \
+    if [ -f /usr/local/share/ca-certificates/nci-ca.crt ]; then \
+        rm /usr/local/share/ca-certificates/nci-ca.crt; \
+        update-ca-certificates --fresh; \
+    fi
+
 # Replace pip with uv and remove pip to eliminate PRISMA-2022-0168
 RUN pip install --no-cache-dir uv && \
     pip uninstall -y pip
