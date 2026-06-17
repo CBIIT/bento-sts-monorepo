@@ -254,12 +254,12 @@ jobs:
               --arg backend_image_ref "$BACKEND_IMAGE_REF" \
               --arg neo4j_image_ref "$NEO4J_IMAGE_REF" \
               --arg twistlock_address "$TWISTLOCK_ADDRESS" \
-              '{image_refs: [$backend_image_ref, $neo4j_image_ref], twistlock_address: $twistlock_address}')
+              '{image_ref: [$backend_image_ref, $neo4j_image_ref], twistlock_address: $twistlock_address}')
           else
             PARAMS=$(jq -n \
               --arg backend_image_ref "$BACKEND_IMAGE_REF" \
               --arg neo4j_image_ref "$NEO4J_IMAGE_REF" \
-              '{image_refs: [$backend_image_ref, $neo4j_image_ref]}')
+              '{image_ref: [$backend_image_ref, $neo4j_image_ref]}')
           fi
           echo "PARAMS=$PARAMS"
           uv run prefect deployment run twistlock-scan/twistlock-scan \
