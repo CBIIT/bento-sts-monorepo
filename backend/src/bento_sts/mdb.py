@@ -15,14 +15,9 @@ from cachetools import TTLCache
 # Decorator functions to produce executed transactions based on an
 # underlying query/param function:
 
-<<<<<<< HEAD
 logger = logging.getLogger(__name__)
 # Uvicorn already attaches handlers to uvicorn.error; avoids extra app-level logging setup.
 _cache_log = logging.getLogger("uvicorn.error")
-=======
-# Uvicorn already attaches handlers to uvicorn.error; avoids extra app-level logging setup.
-logger = logging.getLogger("uvicorn.error")
->>>>>>> bento-sts-fastapi/main
 load_dotenv()
 
 def read_txn(func):

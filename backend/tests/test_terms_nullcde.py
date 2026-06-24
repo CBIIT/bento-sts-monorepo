@@ -25,8 +25,10 @@ def test_model_pvs_with_nullCDE(test_sts_client):
         assert set(["Paired-End", "Single-indexed"]) < set(pvs_for_library_layout), f"Expected model values in: {pvs_for_library_layout}"
 
 def test_cde_pvs_with_nullCDE(test_sts_client):
+    cdeid = "3045435"
+    cdever = "1.0"
     # Test with use_null_cde=true (should include null CDE PVs regardless of property tags)
-    response = test_sts_client.get("/v2/terms/cde-pvs/15235975/1.00/pvs?use_null_cde=true")
+    response = test_sts_client.get(f"/v2/terms/cde-pvs/{cdeid}/{cdever}/pvs?use_null_cde=true")
     assert response.status_code == 200
     content = response.json()
     assert len(content) > 0
@@ -34,13 +36,13 @@ def test_cde_pvs_with_nullCDE(test_sts_client):
     pvs_with_flag = [pv['value'] for pv in content[0]['permissibleValues']]
     
     # Test without flag (use_null_cde=false, should NOT include null CDE PVs)
-    response_no_flag = test_sts_client.get("/v2/terms/cde-pvs/15235975/1.00/pvs?use_null_cde=false")
+    response_no_flag = test_sts_client.get(f"/v2/terms/cde-pvs/{cdeid}/{cdever}/pvs?use_null_cde=false")
     assert response_no_flag.status_code == 200
     content_no_flag = response_no_flag.json()
     pvs_no_flag = [pv['value'] for pv in content_no_flag[0]['permissibleValues']]
     
     # Test default behavior (no parameter, defaults to use_null_cde=false)
-    response_default = test_sts_client.get("/v2/terms/cde-pvs/15235975/1.00/pvs")
+    response_default = test_sts_client.get(f"/v2/terms/cde-pvs/{cdeid}/{cdever}/pvs")
     assert response_default.status_code == 200
     content_default = response_default.json()
     pvs_default = [pv['value'] for pv in content_default[0]['permissibleValues']]
