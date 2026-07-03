@@ -41,3 +41,8 @@ sources = ["src"]
 
 [tool.pytest.ini_options]
 addopts = "-s -k local"
+pythonpath = ["src"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
