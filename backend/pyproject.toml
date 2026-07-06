@@ -3,6 +3,12 @@ name = "bento-sts"
 version = "2.5.0"
 description = "FastAPI implementation of Simple Terminology Service"
 readme = "README.md"
+authors = [
+    { name = "Mark Jensen", email = "mark.jensen@nih.gov" },
+    { name = "David-YuWei", email = "wei.yu@nih.gov" },
+    { name = "knockknockyoo", email = "iheaven0129@gmail.com" },
+    { name = "Tazeen Shaukat", email = "ts1459@georgetown.edu" }
+]
 requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
