@@ -34,7 +34,7 @@ on:
         default: ""
         type: string
       neo4j_version:
-        description: "Neo4j Docker image tag to mirror into ECR"
+        description: "Neo4j Docker image tag to copy into ECR"
         required: true
         default: "4.4.44-community"
         type: string
@@ -163,10 +163,10 @@ jobs:
           docker push $IMAGE_NAME
 
   # ──────────────────────────────────────────────
-  # Job 3: Mirror external Neo4j image into ECR
+  # Job 3: Copy external Neo4j image into ECR
   # ──────────────────────────────────────────────
-  mirror_neo4j:
-    name: Mirror Neo4j Image to ECR
+  copy_neo4j:
+    name: Copy Neo4j Image to ECR
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
@@ -219,7 +219,7 @@ jobs:
   twistlock_scan:
     name: Run Twistlock Scan
     runs-on: ubuntu-latest
-    needs: [prepare, build, mirror_neo4j]
+    needs: [prepare, build, copy_neo4j]
     if: ${{ inputs.twistlock_scan == true }}
     environment: ${{ inputs.environment }}
     env:
@@ -293,7 +293,7 @@ jobs:
   notify:
     name: Slack Notification
     runs-on: ubuntu-latest
-    needs: [build, mirror_neo4j]
+    needs: [build, copy_neo4j, twistlock_scan]
     if: always()
     steps:
       - name: Slack Notification
@@ -301,4 +301,4 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         uses: act10ns/slack@87c73aef9f8838eb6feae81589a6b1487a4a9e08  # v1.6.0
         with:
-          status: ${{ needs.build.result }}
+          status: ${{ contains(needs.*.result, 'failure') && 'failure' || 'success' }}
