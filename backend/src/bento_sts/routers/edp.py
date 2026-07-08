@@ -29,7 +29,7 @@ def edp_pvs_by_origin_id_version_get(
         "MATCH (:term {origin_name: $origin_name, origin_id: $origin_id,",
         "               origin_version: $origin_version})",
         "-[:specifies_value_set]->(v:value_set)-[:has_term]->(t:term)",
-        "return t",
+        "return distinct t",
         f"SKIP {request.state.skip} " if request.state.skip else "",
         f"LIMIT {request.state.limit}" if request.state.limit else ""])
     rows = request.state.mdb.get_with_statement(
