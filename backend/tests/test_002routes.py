@@ -467,9 +467,8 @@ class TestEdpsRouter:
         response = test_sts_client.get(
             f"/v2/edps/caDSR/{origin_id}/{origin_version}/properties"
         )
-        assert response.status_code in [200, 404]
-        if response.status_code == 200:
-            assert isinstance(response.json(), list)
+        assert response.status_code == 200
+        assert isinstance(response.json(), list)
 
     def test_edps_properties_returns_property_objects(self, test_sts_client):
         edps_response = test_sts_client.get("/v2/edps/caDSR?limit=1")
@@ -484,16 +483,23 @@ class TestEdpsRouter:
         response = test_sts_client.get(
             f"/v2/edps/caDSR/{origin_id}/{origin_version}/properties"
         )
-        if response.status_code == 404:
-            pytest.skip("No model properties found for selected EDP; cannot validate Property response shape")
         assert response.status_code == 200
         props = response.json()
-        assert isinstance(props, list) and props
+        assert isinstance(props, list)
+        if not props:
+            pytest.skip("No model properties found for selected EDP; cannot validate Property response shape")
         prop = props[0]
         assert prop["type"] == "Property"
         assert "handle" in prop
         assert "model" in prop
         assert "value_domain" in prop
+    
+    def test_edps_properties_unknown_edp_returns_404(self, test_sts_client):
+        response = test_sts_client.get(
+            "/v2/edps/caDSR/nonexistent_edp/999/properties"
+        )
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Not found."
 
 class TestEdpRouter:
     """Tests for /edp endpoints"""

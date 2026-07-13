@@ -56,13 +56,13 @@ def edp_properties_get(
     originId: str,
     originVersion: str,
 ):
-    stmt = " ".join([
-        "MATCH (p:property)-[:has_value_set]->(v:value_set)",
-        "<-[:specifies_value_set]-(edp:term {origin_name: $origin_name,",
-        "origin_id: $origin_id, origin_version: $origin_version})",
-        "RETURN DISTINCT p",
-        f"SKIP {request.state.skip} " if request.state.skip else "",
-        f"LIMIT {request.state.limit}" if request.state.limit else "",
+    stmt = "\n".join([
+        "MATCH (edp:term {origin_name: $origin_name, origin_id: $origin_id,",
+        "origin_version: $origin_version})",
+        "-[:specifies_value_set]->(v:value_set)",
+        "OPTIONAL MATCH (p:property)-[:has_value_set]->(v)",
+        "WITH edp, collect(DISTINCT p) AS props",
+        "RETURN [p IN props WHERE p IS NOT NULL] AS props",
     ])
 
     rows = request.state.mdb.get_with_statement(
@@ -74,9 +74,16 @@ def edp_properties_get(
         },
     )
 
-    ret = []
-    for row in rows:
-        ret.append(neo_to_py(row["p"]))
-    return ret
+    props = rows[0]["props"]
+
+    skip = request.state.skip or 0
+    limit = request.state.limit or 0
+
+    if limit > 0:
+        props = props[skip : skip + limit]
+    elif skip:
+        props = props[skip:]
+
+    return [neo_to_py(p) for p in props]
 
 
