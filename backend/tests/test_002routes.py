@@ -452,34 +452,48 @@ class TestEdpsRouter:
 
     def test_edps_properties_by_origin_id_version(self, test_sts_client):
         edps_response = test_sts_client.get("/v2/edps/caDSR?limit=1")
-        if edps_response.status_code == 200 and edps_response.json():
-            term = edps_response.json()[0]
-            origin_id = term.get("origin_id")
-            origin_version = term.get("origin_version")
-            if origin_id and origin_version:
-                response = test_sts_client.get(
-                    f"/v2/edps/caDSR/{origin_id}/{origin_version}/properties"
-                )
-                assert response.status_code in [200, 404]
-                if response.status_code == 200:
-                    assert isinstance(response.json(), list)
+        assert edps_response.status_code == 200
+
+        if not edps_response.json():
+            pytest.skip("No EDP terms returned from /v2/edps/caDSR; cannot test properties endpoint")
+
+        term = edps_response.json()[0]
+        origin_id = term.get("origin_id")
+        origin_version = term.get("origin_version")
+
+        if not (origin_id and origin_version):
+            pytest.skip("EDP term missing origin_id/origin_version; cannot test properties endpoint")
+
+        response = test_sts_client.get(
+            f"/v2/edps/caDSR/{origin_id}/{origin_version}/properties"
+        )
+        assert response.status_code in [200, 404]
+        if response.status_code == 200:
+            assert isinstance(response.json(), list)
 
     def test_edps_properties_returns_property_objects(self, test_sts_client):
         edps_response = test_sts_client.get("/v2/edps/caDSR?limit=1")
-        if edps_response.status_code == 200 and edps_response.json():
-            term = edps_response.json()[0]
-            origin_id = term.get("origin_id")
-            origin_version = term.get("origin_version")
-            if origin_id and origin_version:
-                response = test_sts_client.get(
-                    f"/v2/edps/caDSR/{origin_id}/{origin_version}/properties"
-                )
-                if response.status_code == 200 and response.json():
-                    prop = response.json()[0]
-                    assert prop["type"] == "Property"
-                    assert "handle" in prop
-                    assert "model" in prop
-                    assert "value_domain" in prop
+        assert edps_response.status_code == 200
+        if not edps_response.json():
+            pytest.skip("No EDP terms returned from /v2/edps/caDSR; cannot test properties endpoint")
+        term = edps_response.json()[0]
+        origin_id = term.get("origin_id")
+        origin_version = term.get("origin_version")
+        if not (origin_id and origin_version):
+            pytest.skip("EDP term missing origin_id/origin_version; cannot test properties endpoint")
+        response = test_sts_client.get(
+            f"/v2/edps/caDSR/{origin_id}/{origin_version}/properties"
+        )
+        if response.status_code == 404:
+            pytest.skip("No model properties found for selected EDP; cannot validate Property response shape")
+        assert response.status_code == 200
+        props = response.json()
+        assert isinstance(props, list) and props
+        prop = props[0]
+        assert prop["type"] == "Property"
+        assert "handle" in prop
+        assert "model" in prop
+        assert "value_domain" in prop
 
 class TestEdpRouter:
     """Tests for /edp endpoints"""

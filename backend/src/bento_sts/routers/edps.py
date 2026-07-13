@@ -26,7 +26,7 @@ router = APIRouter(
 def edp_terms_get(request: Request, originName: str):
     stmt = " ".join([
         "MATCH (t:term {origin_name: $origin_name})-[:specifies_value_set]->(:value_set)",
-        "RETURN t",
+        "RETURN DISTINCT t",
         f"SKIP {request.state.skip} " if request.state.skip else "",
         f"LIMIT {request.state.limit}" if request.state.limit else ""])
 
