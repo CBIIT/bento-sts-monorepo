@@ -51,7 +51,7 @@ wheels = [
 [[package]]
 name = "bento-sts"
 version = "2.5.0"
-source = { editable = "." }
+source = { virtual = "." }
 dependencies = [
     { name = "cachetools" },
     { name = "cryptography" },
