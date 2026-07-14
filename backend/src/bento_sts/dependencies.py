@@ -1,5 +1,5 @@
 from logging import getLogger
-from fastapi import Request
+from fastapi import HTTPException, Request
 from pydantic import Field
 from typing import Annotated
 from .mdb import MDBReader
@@ -7,6 +7,8 @@ from .mdb import MDBReader
 
 logger = getLogger(__name__)
 mdb = MDBReader()
+# Neo4j uses signed 64-bit integers, so larger paging values must be rejected.
+MAX_PAGING_VALUE = 2**63 - 1
 
 
 def make_paging_params(default_limit: int = 0):
@@ -15,6 +17,19 @@ def make_paging_params(default_limit: int = 0):
         skip: Annotated[int, Field(ge=0)] = 0,
         limit: Annotated[int, Field(ge=0)] = default_limit,
     ):
+        errors = [
+            {
+                "type": "value_too_large",
+                "loc": ["query", parameter],
+                "msg": "Requested pagination value is too large.",
+                "input": str(value),
+            }
+            for parameter, value in (("skip", skip), ("limit", limit))
+            if value > MAX_PAGING_VALUE
+        ]
+        if errors:
+            raise HTTPException(status_code=422, detail=errors)
+
         # treat limit=0 as "use default_limit" when a default is set,
         effective_limit = limit if limit > 0 else default_limit
         request.state.skip = skip
