@@ -567,6 +567,24 @@ class TestEdgeCases:
     def test_very_large_limit(self, test_sts_client):
         response = test_sts_client.get("/v2/tags?limit=1000000")
         assert response.status_code == 200
+
+    def test_out_of_range_skip(self, test_sts_client):
+        response = test_sts_client.get(
+            f"/v2/edp/CRDC/CRDC0002/1/terms?skip={2**63}"
+        )
+        assert response.status_code == 422
+        assert response.json()["detail"][0]["loc"] == ["query", "skip"]
+        assert response.json()["detail"][0]["msg"] == (
+            "Requested pagination value is too large."
+        )
+
+    def test_out_of_range_limit(self, test_sts_client):
+        response = test_sts_client.get(f"/v2/edps/CRDC?limit={2**63}")
+        assert response.status_code == 422
+        assert response.json()["detail"][0]["loc"] == ["query", "limit"]
+        assert response.json()["detail"][0]["msg"] == (
+            "Requested pagination value is too large."
+        )
     
     def test_special_characters_in_params(self, test_sts_client):
         response = test_sts_client.get("/v2/tag/key%20with%20spaces/value")
