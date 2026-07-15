@@ -450,6 +450,56 @@ class TestEdpsRouter:
             assert "value" in term
             assert "type" in term
 
+    def test_edps_properties_by_origin_id_version(self, test_sts_client):
+        edps_response = test_sts_client.get("/v2/edps/caDSR?limit=1")
+        assert edps_response.status_code == 200
+
+        if not edps_response.json():
+            pytest.skip("No EDP terms returned from /v2/edps/caDSR; cannot test properties endpoint")
+
+        term = edps_response.json()[0]
+        origin_id = term.get("origin_id")
+        origin_version = term.get("origin_version")
+
+        if not (origin_id and origin_version):
+            pytest.skip("EDP term missing origin_id/origin_version; cannot test properties endpoint")
+
+        response = test_sts_client.get(
+            f"/v2/edps/caDSR/{origin_id}/{origin_version}/properties"
+        )
+        assert response.status_code == 200
+        assert isinstance(response.json(), list)
+
+    def test_edps_properties_returns_property_objects(self, test_sts_client):
+        edps_response = test_sts_client.get("/v2/edps/caDSR?limit=1")
+        assert edps_response.status_code == 200
+        if not edps_response.json():
+            pytest.skip("No EDP terms returned from /v2/edps/caDSR; cannot test properties endpoint")
+        term = edps_response.json()[0]
+        origin_id = term.get("origin_id")
+        origin_version = term.get("origin_version")
+        if not (origin_id and origin_version):
+            pytest.skip("EDP term missing origin_id/origin_version; cannot test properties endpoint")
+        response = test_sts_client.get(
+            f"/v2/edps/caDSR/{origin_id}/{origin_version}/properties"
+        )
+        assert response.status_code == 200
+        props = response.json()
+        assert isinstance(props, list)
+        if not props:
+            pytest.skip("No model properties found for selected EDP; cannot validate Property response shape")
+        prop = props[0]
+        assert prop["type"] == "Property"
+        assert "handle" in prop
+        assert "model" in prop
+        assert "value_domain" in prop
+    
+    def test_edps_properties_unknown_edp_returns_404(self, test_sts_client):
+        response = test_sts_client.get(
+            "/v2/edps/caDSR/nonexistent_edp/999/properties"
+        )
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Not found."
 
 class TestEdpRouter:
     """Tests for /edp endpoints"""

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Request
 from typing import List
 from ..dependencies import paging_params
-from ..pymodels import Term
+from ..pymodels import Term, Property
 from ..converters import neo_to_py
 
 router = APIRouter(
@@ -22,6 +22,7 @@ router = APIRouter(
         422: {"description": "Bad parameters (skip or limit?)"},
     },
 )
+
 def edp_terms_get(request: Request, originName: str):
     stmt = " ".join([
         "MATCH (t:term {origin_name: $origin_name})-[:specifies_value_set]->(:value_set)",
@@ -37,3 +38,52 @@ def edp_terms_get(request: Request, originName: str):
     for row in rows:
         ret.append(neo_to_py(row['t']))
     return ret
+
+@router.get(
+    "/{originName}/{originId}/{originVersion}/properties",
+    summary="Get model properties that use a given EDP as their permissible value list source.",
+    response_model=List[Property],
+    responses={
+        200: {"description": "Successful Response"},
+        404: {"description": "Not found."},
+        422: {"description": "Bad parameters (origin, id, version, skip, or limit?)"},
+    },
+)
+
+def edp_properties_get(
+    request: Request,
+    originName: str,
+    originId: str,
+    originVersion: str,
+):
+    stmt = "\n".join([
+        "MATCH (edp:term {origin_name: $origin_name, origin_id: $origin_id,",
+        "origin_version: $origin_version})",
+        "-[:specifies_value_set]->(v:value_set)",
+        "OPTIONAL MATCH (p:property)-[:has_value_set]->(v)",
+        "WITH edp, collect(DISTINCT p) AS props",
+        "RETURN [p IN props WHERE p IS NOT NULL] AS props",
+    ])
+
+    rows = request.state.mdb.get_with_statement(
+        stmt,
+        {
+            "origin_name": originName,
+            "origin_id": originId,
+            "origin_version": originVersion,
+        },
+    )
+
+    props = rows[0]["props"]
+
+    skip = request.state.skip or 0
+    limit = request.state.limit or 0
+
+    if limit > 0:
+        props = props[skip : skip + limit]
+    elif skip:
+        props = props[skip:]
+
+    return [neo_to_py(p) for p in props]
+
+
