@@ -563,6 +563,59 @@ class TestEdgeCases:
     def test_invalid_pagination_params(self, test_sts_client):
         response = test_sts_client.get("/v2/tags?skip=-1&limit=-5")
         assert response.status_code == 422
+
+    def test_mixed_invalid_pagination_params(self, test_sts_client):
+        huge_value = "999999999999999999999999"
+        cases = [
+            (f"skip={huge_value}&limit={huge_value}", {
+                "skip": (
+                    "value_too_large",
+                    "Requested pagination value is too large.",
+                ),
+                "limit": (
+                    "value_too_large",
+                    "Requested pagination value is too large.",
+                ),
+            }),
+            (f"skip=-1&limit={huge_value}", {
+                "skip": (
+                    "greater_than_equal",
+                    "Input should be greater than or equal to 0",
+                ),
+                "limit": (
+                    "value_too_large",
+                    "Requested pagination value is too large.",
+                ),
+            }),
+            (f"limit=abc123&skip={huge_value}", {
+                "skip": (
+                    "value_too_large",
+                    "Requested pagination value is too large.",
+                ),
+                "limit": (
+                    "int_parsing",
+                    "Input should be a valid integer, unable to parse "
+                    "string as an integer",
+                ),
+            }),
+        ]
+        for query, expected_errors in cases:
+            response = test_sts_client.get(
+                f"/v2/edp/CRDC/CRDC0002/1/terms?{query}"
+            )
+            assert response.status_code == 422
+            detail = response.json()["detail"]
+            assert len(detail) >= 2
+            actual_errors = {
+                error["loc"][-1]: (error["type"], error["msg"])
+                for error in detail
+            }
+            assert actual_errors == expected_errors
+
+        response = test_sts_client.get(
+            f"/v2/edps/CRDC?skip=-1&limit={huge_value}"
+        )
+        assert len(response.json()["detail"]) == 2
     
     def test_very_large_limit(self, test_sts_client):
         response = test_sts_client.get("/v2/tags?limit=1000000")

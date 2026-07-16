@@ -1,6 +1,7 @@
 from logging import getLogger
 from fastapi import HTTPException, Request
-from pydantic import Field
+from pydantic import AfterValidator, Field
+from pydantic_core import PydanticCustomError
 from typing import Annotated
 from .mdb import MDBReader
 
@@ -11,11 +12,24 @@ mdb = MDBReader()
 MAX_PAGING_VALUE = 2**63 - 1
 
 
+def validate_paging_value(value: int) -> int:
+    if value > MAX_PAGING_VALUE:
+        raise PydanticCustomError(
+            "value_too_large", "Requested pagination value is too large."
+        )
+    return value
+
+
+PagingValue = Annotated[
+    int, Field(ge=0), AfterValidator(validate_paging_value)
+]
+
+
 def make_paging_params(default_limit: int = 0):
     def paging_params(
         request: Request,
-        skip: Annotated[int, Field(ge=0)] = 0,
-        limit: Annotated[int, Field(ge=0)] = default_limit,
+        skip: PagingValue = 0,
+        limit: PagingValue = default_limit,
     ):
         errors = [
             {
