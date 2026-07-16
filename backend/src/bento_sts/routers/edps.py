@@ -15,7 +15,6 @@ router = APIRouter(
     "/{originName}",
     summary="Get all extended definition property (EDP) defining terms, filtered by the origin (authority) of the terms (e.g., 'caDSR' for CDEs)",
     response_model=List[Term],
-    dependencies=[Depends(paging_params)],
     responses={
         200: {"description": "Successful Response"},
         404: {"description": "Not found."},

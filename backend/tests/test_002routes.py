@@ -611,6 +611,11 @@ class TestEdgeCases:
                 for error in detail
             }
             assert actual_errors == expected_errors
+
+        response = test_sts_client.get(
+            f"/v2/edps/CRDC?skip=-1&limit={huge_value}"
+        )
+        assert len(response.json()["detail"]) == 2
     
     def test_very_large_limit(self, test_sts_client):
         response = test_sts_client.get("/v2/tags?limit=1000000")
