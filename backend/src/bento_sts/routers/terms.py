@@ -103,7 +103,8 @@ def pvs_synonyms_model_version_get(request: Request, model: str, property: str =
     OPTIONAL MATCH (ncit_term)-[:represents]->(c_ncim:concept)<-[:represents]-(syn:term), (c_ncim)-[:has_tag]->(:tag {{key: "mapping_source", value: "NCIm"}})
       WHERE syn IS NULL OR (pv <> syn AND pv.value <> syn.value)
     WITH prop, pv.value AS pv_val,
-      collect(DISTINCT ncit_term.origin_id)[0] AS ncit_oid,
+      // Select the lowest code when multiple caDSR mappings exist.
+      min(ncit_term.origin_id) AS ncit_oid,
       collect(DISTINCT syn.value) + [x IN collect(DISTINCT ncit_term.value) WHERE x IS NOT NULL] AS syn_vals
     // Format the PVs with their synonyms and NCIt codes
     WITH prop,
