@@ -299,3 +299,9 @@ input[type="checkbox"], input[type="radio"] { width: 17px; height: 17px; accent-
 @supports not (animation-timeline: view()) {
   .hero-copy, .hero-background { animation: none; }
 }
+
+.capture-mode .hero-scroll { height: 100dvh; }
+.capture-mode .hero-sticky { position: relative; }
+.capture-mode .hero-copy,
+.capture-mode .hero-background { animation: none; }
+.capture-mode .reveal { opacity: 1; transform: none; }

@@ -1,3 +1,7 @@
+if (new URLSearchParams(window.location.search).has("capture")) {
+  document.documentElement.classList.add("capture-mode");
+}
+
 const entities = [
   { id: "model-gdc", type: "Model", name: "Genomic Data Commons", handle: "GDC", model: "GDC", version: "3.0", definition: "A harmonized data model for genomic and clinical cancer research data.", nodes: 42, relationships: 71, properties: 638, related: ["case", "diagnosis", "sample"] },
   { id: "node-case", type: "Node", name: "case", handle: "case", model: "GDC", version: "3.0", definition: "The collection of all data related to a specific subject in a cancer study.", relationships: "diagnosis, demographic, sample", related: ["diagnosis", "sample", "demographic"] },
