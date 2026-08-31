@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="MDB-STS prototype for exploring, searching, and comparing NCI metadata models and terminology." />
+    <title>MDB-STS | NCI</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#explorer">Skip to workspace</a>
+
+    <div class="research-banner" role="note">
+      <div class="page-width banner-inner">
+        <span class="banner-mark" aria-hidden="true">i</span>
+        <span>Official research prototype of the National Cancer Institute</span>
+        <a href="#about">About this prototype</a>
+      </div>
+    </div>
+
+    <header class="site-header">
+      <div class="page-width brand-row">
+        <a class="brand" href="#top" aria-label="MDB-STS home">
+          <span class="nih-block">NIH</span>
+          <span class="brand-copy">
+            <strong>National Cancer Institute</strong>
+            <span>Metadata Browser and Simple Terminology Service</span>
+          </span>
+        </a>
+        <span class="product-name">MDB-STS</span>
+        <button class="theme-button" id="themeButton" type="button" aria-label="Switch color theme">Dark mode</button>
+      </div>
+      <nav class="primary-nav" aria-label="Primary navigation">
+        <div class="page-width nav-row">
+          <a href="#explorer">Explore</a>
+          <a href="#explorer" data-set-mode="terms">Terms</a>
+          <a href="#compare">Compare</a>
+          <a href="#about">About</a>
+          <span class="nav-spacer"></span>
+          <a href="#api">API</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero-scroll" aria-labelledby="hero-title">
+        <div class="hero-sticky">
+          <div class="hero-background" aria-hidden="true">
+            <div class="hero-media-frame">
+              <video class="hero-video-atmosphere" autoplay muted loop playsinline preload="metadata" poster="assets/hero-background-poster.png" tabindex="-1">
+                <source src="assets/hero-background.mp4" type="video/mp4" />
+              </video>
+              <video class="hero-video-subject" autoplay muted loop playsinline preload="metadata" poster="assets/hero-background-poster.png" tabindex="-1">
+                <source src="assets/hero-background.mp4" type="video/mp4" />
+              </video>
+            </div>
+          </div>
+          <div class="hero-veil" aria-hidden="true"></div>
+
+          <div class="hero-content page-width">
+            <div class="hero-copy">
+              <p class="eyebrow">NCI metadata infrastructure</p>
+              <h1 id="hero-title">One view of models and terminology.</h1>
+              <p class="hero-summary">Search entities, trace definitions, and compare cancer research models with scientific context intact.</p>
+              <div class="hero-actions">
+                <a class="button button-primary" href="#explorer">Open workspace</a>
+                <a class="button button-secondary" href="#compare">Compare models</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="workspace-section" id="explorer" aria-labelledby="workspace-title">
+        <div class="page-width">
+          <div class="section-heading reveal">
+            <h2 id="workspace-title">Explore the metadata graph</h2>
+            <p>Browse current model versions, search entity definitions, and open source-linked terminology records.</p>
+          </div>
+
+          <div class="workspace reveal">
+            <div class="workspace-bar">
+              <div class="mode-tabs" role="tablist" aria-label="Search mode">
+                <button class="mode-tab is-active" id="entitiesTab" role="tab" aria-selected="true" data-mode="entities" type="button">Entities</button>
+                <button class="mode-tab" id="termsTab" role="tab" aria-selected="false" data-mode="terms" type="button">Terms</button>
+              </div>
+              <div class="dataset-meta"><strong id="recordCount">9 records</strong><span>sample prototype data</span></div>
+            </div>
+
+            <form class="search-panel" id="searchForm" role="search">
+              <div class="search-field-wrap">
+                <label for="searchInput" id="searchLabel">Search models, nodes, and properties</label>
+                <div class="search-row">
+                  <input id="searchInput" name="query" type="search" autocomplete="off" placeholder="Try patient, diagnosis, or specimen" aria-describedby="searchHelp" />
+                  <button class="button button-primary" type="submit">Search</button>
+                </div>
+                <p id="searchHelp">Matches entity handles by default. Include definitions when needed.</p>
+              </div>
+              <fieldset class="search-options">
+                <legend>Search options</legend>
+                <label><input type="checkbox" id="definitionsToggle" /> Include definitions</label>
+                <label><input type="checkbox" id="currentVersionToggle" checked /> Current versions only</label>
+              </fieldset>
+            </form>
+
+            <div class="workspace-grid">
+              <aside class="model-browser" aria-labelledby="model-browser-title">
+                <div class="panel-title-row">
+                  <h3 id="model-browser-title">Models</h3>
+                  <button class="text-button" id="clearModel" type="button">All models</button>
+                </div>
+                <div id="modelList" class="model-list"></div>
+              </aside>
+
+              <section class="results-panel" aria-labelledby="results-title">
+                <div class="panel-title-row">
+                  <div>
+                    <h3 id="results-title">Current entities</h3>
+                    <p id="resultsSummary" aria-live="polite">Grouped by model</p>
+                  </div>
+                  <label class="sort-control">Sort
+                    <select id="sortSelect">
+                      <option value="relevance">Relevance</option>
+                      <option value="name">Name</option>
+                      <option value="type">Entity type</option>
+                    </select>
+                  </label>
+                </div>
+                <div id="resultsList" class="results-list" aria-live="polite"></div>
+              </section>
+
+              <aside class="entity-panel" id="entityPanel" aria-labelledby="entity-title">
+                <div id="entityDetail"></div>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="compare-section" id="compare" aria-labelledby="compare-title">
+        <div class="page-width">
+          <div class="compare-heading reveal">
+            <h2 id="compare-title">Compare model structure</h2>
+            <p>Align equivalent entities, inspect differences, and reveal properties that moved between nodes.</p>
+          </div>
+
+          <div class="compare-controls reveal">
+            <div class="model-select-block">
+              <label for="leftModel">Model A</label>
+              <select id="leftModel">
+                <option value="GDC 3.0">GDC 3.0</option>
+                <option value="CCDI 2.1">CCDI 2.1</option>
+                <option value="CTDC 1.4">CTDC 1.4</option>
+              </select>
+            </div>
+            <span class="compare-word" aria-hidden="true">compared with</span>
+            <div class="model-select-block">
+              <label for="rightModel">Model B</label>
+              <select id="rightModel">
+                <option value="CCDI 2.1">CCDI 2.1</option>
+                <option value="GDC 3.0">GDC 3.0</option>
+                <option value="CTDC 1.4">CTDC 1.4</option>
+              </select>
+            </div>
+            <button class="button button-primary" id="runCompare" type="button">Calculate diff</button>
+          </div>
+
+          <div class="compare-workspace reveal">
+            <div class="compare-toolbar">
+              <fieldset>
+                <legend>View strategy</legend>
+                <label><input type="radio" name="strategy" value="nodes" checked /> Nodes and properties</label>
+                <label><input type="radio" name="strategy" value="flat" /> Flat properties</label>
+              </fieldset>
+              <fieldset>
+                <legend>Equivalence</legend>
+                <label><input type="checkbox" name="equivalence" value="string" checked /> Exact name</label>
+                <label><input type="checkbox" name="equivalence" value="normalized" checked /> Normalized name</label>
+                <label><input type="checkbox" name="equivalence" value="cde" checked /> CDE ID</label>
+                <label><input type="checkbox" name="equivalence" value="valueset" checked /> Value set</label>
+              </fieldset>
+            </div>
+
+            <div class="diff-summary" id="diffSummary" aria-live="polite">
+              <span><strong>4</strong> aligned</span>
+              <span><strong>2</strong> modified</span>
+              <span><strong>1</strong> unique to A</span>
+              <span><strong>2</strong> unique to B</span>
+            </div>
+
+            <div class="comparison-table-wrap">
+              <table class="comparison-table">
+                <thead>
+                  <tr>
+                    <th scope="col" id="leftHeading">GDC 3.0</th>
+                    <th scope="col">Match basis</th>
+                    <th scope="col" id="rightHeading">CCDI 2.1</th>
+                  </tr>
+                </thead>
+                <tbody id="comparisonBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="about-section" id="about" aria-labelledby="about-title">
+        <div class="page-width about-layout reveal">
+          <div>
+            <h2 id="about-title">Built for traceable decisions</h2>
+            <p>Every entity view keeps model provenance, version, definitions, relationships, terminology, and origin links visible.</p>
+          </div>
+          <dl class="about-details">
+            <div><dt>Entity types</dt><dd>Models, nodes, properties, terms</dd></div>
+            <div><dt>Default scope</dt><dd>Current model versions</dd></div>
+            <div><dt>Comparison views</dt><dd>Hierarchical and flat property alignment</dd></div>
+          </dl>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer" id="api">
+      <div class="page-width footer-layout">
+        <div><strong>National Cancer Institute</strong><span>Part of the National Institutes of Health</span></div>
+        <div><strong>MDB-STS prototype</strong><span>Scientific metadata and terminology exploration</span></div>
+        <nav aria-label="Footer navigation"><a href="#explorer">Accessibility</a><a href="#about">Privacy</a><a href="#api">API documentation</a></nav>
+      </div>
+    </footer>
+
+    <template id="loadingTemplate">
+      <div class="loading-state" aria-label="Loading results">
+        <span></span><span></span><span></span>
+      </div>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
