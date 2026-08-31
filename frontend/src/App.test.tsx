@@ -1,57 +1,29 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
-import { vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import App from "./App";
 
-function renderApp() {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
+beforeEach(() => {
+  window.history.replaceState(null, "", "/bento-sts-monorepo/v1/#/");
+  window.dispatchEvent(new HashChangeEvent("hashchange"));
+});
 
-  return render(
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>,
-  );
-}
+it("renders the Metadata Explorer v1 Home", () => {
+  render(<App />);
+  expect(screen.getByRole("heading", { level: 1, name: "Metadata Explorer" })).toBeInTheDocument();
+  expect(screen.getByRole("navigation", { name: "Primary navigation" })).toBeInTheDocument();
+});
 
-describe("App", () => {
-  beforeEach(() => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => [
-          {
-            type: "Model",
-            handle: "GDC",
-            name: "Genomic Data Commons",
-            version: "1.0",
-            nanoid: "model-1",
-            repository: null,
-            is_latest_version: true,
-          },
-        ],
-      }),
-    );
-  });
+it("navigates to the model browser through the static hash router", async () => {
+  render(<App />);
+  fireEvent.click(screen.getByRole("link", { name: "Models" }));
+  await waitFor(() => expect(screen.getByRole("heading", { level: 1, name: "Browse data models" })).toBeInTheDocument());
+  await waitFor(() => expect(screen.getByText("2 models found")).toBeInTheDocument());
+});
 
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
-  it("renders the STS explorer and loaded models", async () => {
-    renderApp();
-
-    expect(
-      screen.getByRole("heading", {
-        name: "Explore terminology across connected data models",
-      }),
-    ).toBeInTheDocument();
-
-    expect(
-      await screen.findByRole("button", { name: /Genomic Data Commons/ }),
-    ).toBeInTheDocument();
-    expect(screen.getByLabelText("Data model")).toBeEnabled();
-  });
+it("keeps every comparison mode available", async () => {
+  window.history.replaceState(null, "", "/bento-sts-monorepo/v1/#/compare?view=freeform");
+  render(<App />);
+  expect(await screen.findByRole("tab", { name: "Graph alignment" })).toBeInTheDocument();
+  expect(screen.getByRole("tab", { name: "Free-form graph" })).toHaveAttribute("aria-selected", "true");
+  expect(screen.getByRole("tab", { name: "Value-set stacks" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Overlay" })).toBeInTheDocument();
 });
