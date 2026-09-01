@@ -15,6 +15,11 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "next/link": ["./src/next-link.tsx"],
+      "next/navigation": ["./src/next-navigation.ts"]
+    },
     "types": ["vitest/globals", "@testing-library/jest-dom"]
   },
   "include": ["src"]
