@@ -21,15 +21,15 @@ const workspaceNavItems = [
 
 function WorkspaceIcon({ name }: { name: (typeof workspaceNavItems)[number]["icon"] }) {
   if (name === "search") {
-    return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 5 5" /></svg>;
+    return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="5.5" /><path d="m14.5 14.5 5 5" /></svg>;
   }
   if (name === "models") {
-    return <svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3" /><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5" /><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" /></svg>;
+    return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="5" height="5" /><rect x="15" y="4" width="5" height="5" /><rect x="4" y="15" width="5" height="5" /><rect x="15" y="15" width="5" height="5" /></svg>;
   }
   if (name === "terms") {
-    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z" /><path d="M4 5.5v16M8 7h8M8 11h7" /></svg>;
+    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h14" /></svg>;
   }
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h14M15 4l3 3-3 3M20 17H6M9 14l-3 3 3 3" /></svg>;
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="6" height="14" /><rect x="14.5" y="5" width="6" height="14" /></svg>;
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -72,6 +72,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       ) : (
         <div className="portal-dashboard-frame">
           <aside className="portal-dashboard-sidebar">
+            <Link className="dashboard-home-link" href="/" aria-label="Back to Metadata Explorer home">
+              <span className="dashboard-home-mark" aria-hidden="true">ME</span>
+              <span className="dashboard-home-copy">
+                <strong>Metadata Explorer</strong>
+                <small>NCI Data Standards</small>
+              </span>
+              <span className="dashboard-home-arrow" aria-hidden="true">‹</span>
+            </Link>
             <nav className="dashboard-nav" aria-label="Workspace navigation">
               <p className="dashboard-nav-title">Workspace</p>
               {workspaceNavItems.map((item) => {

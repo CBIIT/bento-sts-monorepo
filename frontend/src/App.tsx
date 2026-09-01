@@ -28,8 +28,10 @@ function RouteView() {
     const strategy = strategies.has(requestedStrategy) ? requestedStrategy as "exact" | "normalized" | "cde" | "value-set" | "overlap" : "exact";
     const requestedView = searchParams.get("view");
     const view = requestedView === "stack" ? "stack" : requestedView === "freeform" ? "freeform" : "graph";
+    const workspaceParams = new URLSearchParams(searchParams);
+    workspaceParams.delete("selectedEntity");
     return <ComparisonWorkspace
-      key={`${pathname}-${searchParams.toString()}`}
+      key={`${pathname}-${workspaceParams.toString()}`}
       initialLeftModel={searchParams.get("leftModel") ?? undefined}
       initialRightModel={searchParams.get("rightModel") ?? undefined}
       initialView={view}

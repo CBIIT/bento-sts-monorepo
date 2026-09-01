@@ -36,6 +36,18 @@ it("keeps every comparison mode available", async () => {
   expect(screen.queryByText("Refine comparison results")).not.toBeInTheDocument();
 });
 
+it("keeps the selected free-form display after selecting a node", async () => {
+  window.history.replaceState(null, "", "/bento-sts-monorepo/v3/#/compare?leftModel=MODEL-CLINICAL-1&rightModel=MODEL-CLINICAL-2&view=freeform&strategy=exact&selectedEntity=sample");
+  render(<App />);
+  const overlayButton = screen.getByRole("button", { name: "Overlay" });
+  fireEvent.click(overlayButton);
+  const overlay = screen.getByRole("region", { name: "Model A and Model B overlay graph" });
+  fireEvent.click(within(overlay).getAllByRole("button")[0]);
+  await waitFor(() => expect(window.location.hash).toContain("selectedEntity="));
+  expect(overlayButton).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getByRole("button", { name: "A/B side by side" })).toHaveAttribute("aria-pressed", "false");
+});
+
 it("searches value sets when the option is enabled and opens their detail page", async () => {
   window.history.replaceState(null, "", "/bento-sts-monorepo/v3/#/search?q=response_values");
   render(<App />);

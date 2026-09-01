@@ -821,19 +821,26 @@ body { background: var(--portal-page); color: var(--portal-text); font-family: "
 .portal-nav a:hover, .portal-nav a:focus-visible { background: #195d9c; color: white; }
 .portal-nav a[aria-current="page"] { border-bottom-color: #8ee6da; background: var(--portal-blue-dark); color: white; }
 .portal-dashboard-frame { flex: 1 0 auto; display: grid; grid-template-columns: 184px minmax(0, 1fr); align-items: stretch; }
-.portal-dashboard-sidebar { position: relative; z-index: 6; min-height: 620px; display: flex; flex-direction: column; justify-content: space-between; background: #07376d; color: white; box-shadow: 3px 0 14px rgb(4 42 104 / 13%); }
-.dashboard-nav { position: sticky; top: 0; padding: 22px 12px; }
-.dashboard-nav-title { margin: 0 12px 13px; color: #a9c9e8; font-size: .67rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
-.dashboard-nav a { min-height: 52px; display: flex; align-items: center; gap: 12px; margin-bottom: 4px; border-left: 3px solid transparent; border-radius: 3px; padding: 10px 12px; color: #eaf4fd; font-size: .88rem; font-weight: 650; text-decoration: none; }
-.dashboard-nav a:hover, .dashboard-nav a:focus-visible { background: rgb(255 255 255 / 9%); color: white; }
-.dashboard-nav a[aria-current="page"] { border-left-color: #6ee7d8; background: white; color: var(--portal-navy); box-shadow: 0 4px 12px rgb(0 15 44 / 15%); }
+.portal-dashboard-sidebar { position: relative; z-index: 6; min-height: 620px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid #cbd9e5; background: #fff; color: #17324d; box-shadow: 2px 0 8px rgb(4 42 104 / 6%); }
+.dashboard-home-link { min-height: 76px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #d6e0e8; padding: 14px 13px; color: #102f4f; text-decoration: none; }
+.dashboard-home-link:hover, .dashboard-home-link:focus-visible { background: #f3f8fb; }
+.dashboard-home-mark { width: 30px; height: 30px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid #8fb3cc; background: #e6f4fa; color: #0a5680; font-size: .62rem; font-weight: 800; letter-spacing: .03em; }
+.dashboard-home-copy { min-width: 0; display: grid; gap: 2px; line-height: 1.1; }
+.dashboard-home-copy strong { font-size: .78rem; white-space: nowrap; }
+.dashboard-home-copy small { color: #61768a; font-size: .55rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.dashboard-home-arrow { margin-left: auto; color: #61768a; font-size: 1.1rem; font-weight: 700; }
+.dashboard-nav { position: sticky; top: 0; flex: 1; padding: 18px 12px 22px; }
+.dashboard-nav-title { margin: 0 12px 13px; color: #5b7288; font-size: .67rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.dashboard-nav a { min-height: 52px; display: flex; align-items: center; gap: 12px; margin-bottom: 4px; border-left: 3px solid transparent; border-radius: 2px; padding: 10px 12px; color: #36536c; font-size: .88rem; font-weight: 650; text-decoration: none; }
+.dashboard-nav a:hover, .dashboard-nav a:focus-visible { background: #f1f7fa; color: var(--portal-navy); }
+.dashboard-nav a[aria-current="page"] { border-left-color: #00a6b4; background: #eaf7f8; color: var(--portal-navy); box-shadow: none; }
 .dashboard-nav-icon { width: 24px; height: 24px; display: grid; place-items: center; flex: 0 0 auto; }
 .dashboard-nav-icon svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.dashboard-status { display: flex; align-items: flex-start; gap: 9px; margin: 18px 15px 22px; border-top: 1px solid rgb(255 255 255 / 16%); padding: 18px 3px 0; }
-.dashboard-status > span { width: 8px; height: 8px; flex: 0 0 auto; margin-top: 5px; border-radius: 50%; background: #6ee7d8; box-shadow: 0 0 0 3px rgb(110 231 216 / 15%); }
+.dashboard-status { display: flex; align-items: flex-start; gap: 9px; margin: 18px 15px 22px; border-top: 1px solid #d6e1ea; padding: 18px 3px 0; }
+.dashboard-status > span { width: 8px; height: 8px; flex: 0 0 auto; margin-top: 5px; border-radius: 50%; background: #00a6b4; }
 .dashboard-status strong, .dashboard-status small { display: block; }
-.dashboard-status strong { color: white; font-size: .72rem; }
-.dashboard-status small { margin-top: 3px; color: #b9d2e9; font-size: .62rem; line-height: 1.35; }
+.dashboard-status strong { color: #17324d; font-size: .72rem; }
+.dashboard-status small { margin-top: 3px; color: #667e92; font-size: .62rem; line-height: 1.35; }
 .portal-main { min-width: 0; flex: 1 0 auto; }
 .portal-main-workspace { background: var(--portal-page); }
 .portal-main-workspace .page-section { width: min(100% - 40px, 1180px); min-height: 520px; margin-inline: auto; background: transparent; padding: 38px 32px 76px; }
@@ -929,11 +936,12 @@ body { background: var(--portal-page); color: var(--portal-text); font-family: "
 
 @media (max-width: 900px) {
   .portal-dashboard-frame { display: block; }
-  .portal-dashboard-sidebar { min-height: 0; display: block; box-shadow: 0 3px 12px rgb(4 42 104 / 13%); }
+  .portal-dashboard-sidebar { min-height: 0; display: block; border-right: 0; border-bottom: 1px solid #cbd9e5; box-shadow: 0 3px 10px rgb(4 42 104 / 7%); }
+  .dashboard-home-link { min-height: 58px; padding: 9px 16px; }
   .dashboard-nav { position: static; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; padding: 7px 16px; }
   .dashboard-nav-title, .dashboard-status { display: none; }
   .dashboard-nav a { min-height: 48px; justify-content: center; margin: 0; border-left: 0; border-bottom: 3px solid transparent; border-radius: 0; padding: 8px 10px 5px; }
-  .dashboard-nav a[aria-current="page"] { border-bottom-color: #6ee7d8; background: rgb(255 255 255 / 12%); color: white; box-shadow: none; }
+  .dashboard-nav a[aria-current="page"] { border-bottom-color: #00a6b4; background: #eaf7f8; color: var(--portal-navy); box-shadow: none; }
   .portal-brand-row > p { display: none; }
   .reference-hero-grid { grid-template-columns: .8fr 1.2fr; gap: 30px; }
   .portal-footer-grid { grid-template-columns: 1.2fr 1fr 1fr; }
