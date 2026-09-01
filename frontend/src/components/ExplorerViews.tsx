@@ -34,9 +34,10 @@ export function ModelsExplorer({ initialIncludePrevious = false }: { initialIncl
   );
 }
 
-export function SearchExplorer({ initialQuery = "", initialDefinitions = false, initialType = "All" }: { initialQuery?: string; initialDefinitions?: boolean; initialType?: string }) {
+export function SearchExplorer({ initialQuery = "", initialDefinitions = false, initialType = "All", initialValueSets = false }: { initialQuery?: string; initialDefinitions?: boolean; initialType?: string; initialValueSets?: boolean }) {
   const [query, setQuery] = useState(initialQuery);
   const [includeDefinitions, setIncludeDefinitions] = useState(initialDefinitions);
+  const [includeValueSets, setIncludeValueSets] = useState(initialValueSets);
   const [type, setType] = useState(initialType);
   const [results, setResults] = useState<SearchEntity[]>([]);
   const [searched, setSearched] = useState(Boolean(initialQuery));
@@ -44,23 +45,23 @@ export function SearchExplorer({ initialQuery = "", initialDefinitions = false, 
 
   useEffect(() => {
     if (!initialQuery) return;
-    searchEntities(initialQuery, initialDefinitions).then((data) => {
+    searchEntities(initialQuery, initialDefinitions, initialValueSets).then((data) => {
       setResults(initialType === "All" ? data : data.filter((item) => item.type === initialType));
       setLoading(false);
     });
-  }, [initialDefinitions, initialQuery, initialType]);
+  }, [initialDefinitions, initialQuery, initialType, initialValueSets]);
 
-  async function runSearch(nextQuery = query, definitions = includeDefinitions, selectedType = type) {
+  async function runSearch(nextQuery = query, definitions = includeDefinitions, selectedType = type, valueSetSearch = includeValueSets) {
     if (!nextQuery.trim()) {
       setLoading(false); setSearched(false); setResults([]);
       replaceQuery({});
       return;
     }
     setLoading(true); setSearched(true);
-    const data = await searchEntities(nextQuery, definitions);
+    const data = await searchEntities(nextQuery, definitions, valueSetSearch);
     setResults(selectedType === "All" ? data : data.filter((item) => item.type === selectedType));
     setLoading(false);
-    replaceQuery({ q: nextQuery, definitions, type: selectedType === "All" ? "" : selectedType });
+    replaceQuery({ q: nextQuery, definitions, type: selectedType === "All" ? "" : selectedType, valueSets: valueSetSearch });
   }
 
   const grouped = useMemo(() => results.reduce((groups, result) => {
@@ -73,17 +74,17 @@ export function SearchExplorer({ initialQuery = "", initialDefinitions = false, 
   return (
     <section className="site-width page-section">
       <Breadcrumbs items={[{ label: "Search" }]} />
-      <PageIntro eyebrow="Catalog search" title="Search metadata entities" description="Search handles across models, nodes, and properties. Add definitions when you need a broader conceptual match." />
+      <PageIntro eyebrow="Catalog search" title="Search metadata entities" description="Search handles across models, nodes, properties, and optionally value sets. Add definitions for broader conceptual matches." />
       <form className="search-workspace" onSubmit={(event: FormEvent) => { event.preventDefault(); void runSearch(); }}>
         <label htmlFor="entity-query">Search models, nodes, and properties</label>
         <div className="search-line"><input id="entity-query" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Try sample, participant, or response" /><button className="button button-primary" type="submit">Search</button></div>
-        <div className="search-options"><label><input type="checkbox" checked={includeDefinitions} onChange={(event) => setIncludeDefinitions(event.target.checked)} /> Include definitions</label><label>Entity type<select value={type} onChange={(event) => setType(event.target.value)}><option>All</option><option>Model</option><option>Node</option><option>Property</option></select></label><span className="default-note">Current versions only</span></div>
+        <div className="search-options"><label><input type="checkbox" checked={includeDefinitions} onChange={(event) => setIncludeDefinitions(event.target.checked)} /> Include definitions</label><label><input type="checkbox" checked={includeValueSets} onChange={(event) => { const checked = event.target.checked; setIncludeValueSets(checked); if (query.trim()) void runSearch(query, includeDefinitions, type, checked); }} /> Include value sets</label><label>Entity type<select value={type} onChange={(event) => setType(event.target.value)}><option>All</option><option>Model</option><option>Node</option><option>Property</option><option>Value Set</option></select></label><span className="default-note">Current versions only</span></div>
       </form>
       <div className="results-panel">
-        <div className="results-panel-header"><div><p className="eyebrow">Search results</p><h2>{searched ? `${results.length} entities` : "Start with a handle or concept"}</h2></div>{searched && <button className="text-button" onClick={() => { setQuery(""); setResults([]); setSearched(false); replaceQuery({}); }}>Clear search</button>}</div>
+        <div className="results-panel-header"><div><p className="eyebrow">Search results</p><h2>{searched ? `${results.length} records` : "Start with a handle or concept"}</h2></div>{searched && <button className="text-button" onClick={() => { setQuery(""); setResults([]); setSearched(false); replaceQuery({}); }}>Clear search</button>}</div>
         {loading && <div className="loading-panel" role="status">Searching metadata…</div>}
         {!loading && searched && results.length === 0 && <div className="empty-state"><h3>No matching entities</h3><p>Check the spelling or include definitions for a broader result.</p></div>}
-        {!loading && [...grouped.entries()].map(([modelId, entities]) => { const model = getModel(modelId); return <section className="result-group" key={modelId}><div className="result-group-title"><div><span>Model</span><h3>{model?.name ?? modelId}</h3></div><span>Version {model?.version ?? "Not available"}</span></div><div>{entities.map((entity) => { const href = entity.type === "Model" ? `/models/${entity.id}` : entity.type === "Node" ? `/models/${entity.modelId}/nodes/${entity.id}` : `/models/${entity.modelId}/properties/${entity.id}`; return <a className="search-result" key={entity.id} href={href}><span className="result-icon" aria-hidden="true">{entity.type.slice(0, 1)}</span><span><strong>{entity.handle}</strong><small>{entity.type} · {entity.definition || "No definition available"}</small></span><span aria-hidden="true">→</span></a>; })}</div></section>; })}
+        {!loading && [...grouped.entries()].map(([modelId, entities]) => { const model = getModel(modelId); return <section className="result-group" key={modelId}><div className="result-group-title"><div><span>Model</span><h3>{model?.name ?? modelId}</h3></div><span>Version {model?.version ?? "Not available"}</span></div><div>{entities.map((entity) => { const href = entity.type === "Model" ? `/models/${entity.id}` : entity.type === "Node" ? `/models/${entity.modelId}/nodes/${entity.id}` : entity.type === "Value Set" ? `/value-sets/${entity.id}` : `/models/${entity.modelId}/properties/${entity.id}`; return <a className="search-result" key={entity.id} href={href}><span className="result-icon" aria-hidden="true">{entity.type.slice(0, 1)}</span><span><strong>{entity.handle}</strong><small>{entity.type} / {entity.definition || "No definition available"}</small></span><span aria-hidden="true">→</span></a>; })}</div></section>; })}
       </div>
     </section>
   );

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { getModel, getNode, getProperty, getValueSet, relationships, terms } from "../data/mock-data";
+import { getModel, getNode, getProperty, getValueSet, properties, relationships, terms } from "../data/mock-data";
 
 export function Breadcrumbs({ items }: { items: { label: string; href?: string }[] }) {
   return (
@@ -81,8 +81,8 @@ export function PropertyEntityView({ modelId, propertyId }: { modelId: string; p
     <section className="site-width page-section">
       <Breadcrumbs items={[{ label: "Models", href: "/models" }, { label: model.name, href: `/models/${model.id}` }, { label: parent?.handle ?? "Node", href: `/models/${model.id}/nodes/${parent?.id}` }, { label: property.handle }]} />
       <PageIntro eyebrow="Property" title={property.handle} description={property.definition ?? "No definition available."} actions={<Badge tone={property.required ? "warning" : "neutral"}>{property.required ? "Required" : "Optional"}</Badge>} />
-      <AttributeGrid items={[{ label: "Model", value: model.name }, { label: "Parent node", value: parent ? <a href={`/models/${model.id}/nodes/${parent.id}`}>{parent.handle}</a> : "Not available" }, { label: "Value type", value: property.valueType }, { label: "CDE ID", value: property.cdeId ?? "Not available" }, { label: "Technical ID", value: <code>{property.id}</code> }, { label: "Value set", value: valueSet?.handle ?? "Not available" }]} />
-      {valueSet && <div className="content-panel standalone"><div className="section-heading compact"><div><p className="eyebrow">Permissible values</p><h2>{valueSet.handle}</h2></div><a href={valueSet.originUrl} target="_blank" rel="noreferrer">{valueSet.origin} source</a></div><div className="term-chip-list">{allowedTerms.map((term) => term && <a key={term.id} href={`/terms/${term.id}`}>{term.value}</a>)}</div></div>}
+      <AttributeGrid items={[{ label: "Model", value: model.name }, { label: "Parent node", value: parent ? <a href={`/models/${model.id}/nodes/${parent.id}`}>{parent.handle}</a> : "Not available" }, { label: "Value type", value: property.valueType }, { label: "CDE ID", value: property.cdeId ?? "Not available" }, { label: "Technical ID", value: <code>{property.id}</code> }, { label: "Value set", value: valueSet ? <a href={`/value-sets/${valueSet.id}`}>{valueSet.handle}</a> : "Not available" }]} />
+      {valueSet && <div className="content-panel standalone"><div className="section-heading compact"><div><p className="eyebrow">Permissible values</p><h2><a href={`/value-sets/${valueSet.id}`}>{valueSet.handle}</a></h2></div><a href={valueSet.originUrl} target="_blank" rel="noreferrer">{valueSet.origin} source</a></div><div className="term-chip-list">{allowedTerms.map((term) => term && <a key={term.id} href={`/terms/${term.id}`}>{term.value}</a>)}</div></div>}
     </section>
   );
 }
@@ -98,8 +98,26 @@ export function TermEntityView({ termId }: { termId: string }) {
       <PageIntro eyebrow="Term" title={term.value} description={term.definition} actions={<Badge tone="purple">{term.origin}</Badge>} />
       <AttributeGrid items={[{ label: "Origin", value: term.origin }, { label: "Origin ID", value: <code>{term.originId}</code> }, { label: "Technical ID", value: <code>{term.id}</code> }, { label: "Origin resource", value: <a href={term.originUrl} target="_blank" rel="noreferrer">Open {term.origin} record</a> }]} />
       <div className="two-column-content">
-        <div className="content-panel"><h2>Permissible value sets</h2>{termSets.map((set) => set && <div className="list-row static" key={set.id}><span><strong>{set.handle}</strong><small>{set.origin}</small></span></div>)}</div>
+        <div className="content-panel"><h2>Permissible value sets</h2>{termSets.map((set) => set && <a className="list-row" href={`/value-sets/${set.id}`} key={set.id}><span><strong>{set.handle}</strong><small>{set.origin}</small></span><span aria-hidden="true">→</span></a>)}</div>
         <div className="content-panel"><h2>Defines these entities</h2>{definedProperties.map((property) => property && <a className="list-row" key={property.id} href={`/models/${property.modelId}/properties/${property.id}`}><span><strong>{property.handle}</strong><small>Property</small></span><span aria-hidden="true">→</span></a>)}</div>
+      </div>
+    </section>
+  );
+}
+
+export function ValueSetEntityView({ valueSetId }: { valueSetId: string }) {
+  const valueSet = getValueSet(valueSetId);
+  if (!valueSet) return <EntityNotFound entity="Value set" />;
+  const allowedTerms = valueSet.termIds.map((id) => terms.find((term) => term.id === id)).filter(Boolean);
+  const linkedProperties = properties.filter((property) => property.valueSetId === valueSet.id);
+  return (
+    <section className="site-width page-section">
+      <Breadcrumbs items={[{ label: "Search", href: "/search" }, { label: "Value sets" }, { label: valueSet.handle }]} />
+      <PageIntro eyebrow="Value set" title={valueSet.handle} description="A permissible set of controlled terminology values linked to model properties." actions={<Badge tone="purple">{valueSet.origin}</Badge>} />
+      <AttributeGrid items={[{ label: "Origin", value: valueSet.origin }, { label: "Technical ID", value: <code>{valueSet.id}</code> }, { label: "Permissible terms", value: valueSet.termIds.length }, { label: "Origin resource", value: <a href={valueSet.originUrl} target="_blank" rel="noreferrer">Open {valueSet.origin} resource</a> }]} />
+      <div className="two-column-content">
+        <div className="content-panel"><h2>Permissible terms</h2>{allowedTerms.map((term) => term && <a className="list-row" key={term.id} href={`/terms/${term.id}`}><span><strong>{term.value}</strong><small>{term.originId}</small></span><span aria-hidden="true">→</span></a>)}</div>
+        <div className="content-panel"><h2>Linked properties</h2>{linkedProperties.length ? linkedProperties.map((property) => <a className="list-row" key={property.id} href={`/models/${property.modelId}/properties/${property.id}`}><span><strong>{property.handle}</strong><small>{getModel(property.modelId)?.name}</small></span><span aria-hidden="true">→</span></a>) : <p className="muted">No linked properties are available.</p>}</div>
       </div>
     </section>
   );

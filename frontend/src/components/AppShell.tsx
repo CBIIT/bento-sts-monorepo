@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 
 const navItems = [
   { href: "/", label: "Home", matches: (pathname: string) => pathname === "/" },
+  { href: "/search", label: "Search", matches: (pathname: string) => pathname.startsWith("/search") || pathname.startsWith("/value-sets") },
   { href: "/models", label: "Models", matches: (pathname: string) => pathname.startsWith("/models") },
   { href: "/terms", label: "Terms", matches: (pathname: string) => pathname.startsWith("/terms") },
   { href: "/compare", label: "Compare", matches: (pathname: string) => pathname.startsWith("/compare") },

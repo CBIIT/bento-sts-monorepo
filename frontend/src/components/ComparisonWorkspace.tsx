@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { KeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
-import { comparisonGraphs, comparisonSummary, freeformComparisonGraphs, freeformOverlayGraph, graphRows, stackRows } from "../data/adapter";
+import { comparisonGraphs, freeformComparisonGraphs, freeformOverlayGraph, graphRows, stackRows } from "../data/adapter";
 import type { ComparisonGraphEdge, ComparisonGraphNode, FreeformGraphNode } from "../data/adapter";
 import { models } from "../data/mock-data";
 import { replaceCompareRoute } from "../router";
@@ -28,8 +28,8 @@ export function ComparisonWorkspace({ initialLeftModel = "MODEL-CLINICAL-1", ini
   const [rightModel, setRightModel] = useState(initialRightModel);
   const [view, setView] = useState<View>(initialView);
   const [strategy, setStrategy] = useState<Strategy>(initialStrategy);
-  const [status, setStatus] = useState(initialStatus);
-  const [query, setQuery] = useState(initialQuery);
+  const [status] = useState(initialStatus);
+  const [query] = useState(initialQuery);
   const [threshold, setThreshold] = useState(initialThreshold);
   const [selected, setSelected] = useState(initialSelected);
 
@@ -42,9 +42,8 @@ export function ComparisonWorkspace({ initialLeftModel = "MODEL-CLINICAL-1", ini
     replaceCompareRoute(params);
   }, [leftModel, rightModel, view, strategy, status, query, threshold, selected]);
 
-  const visibleRows = useMemo(() => graphRows.filter((row) => (status === "all" || row.status === status) && (!query || `${row.left} ${row.right} ${row.reason}`.toLocaleLowerCase().includes(query.toLocaleLowerCase()))), [status, query]);
+  const visibleRows = graphRows;
   const selectedRow = graphRows.find((row) => row.id === selected) ?? graphRows[0];
-  const totalCompared = comparisonSummary.reduce((sum, item) => sum + item.count, 0);
   const left = models.find((model) => model.id === leftModel) ?? models[1];
   const right = models.find((model) => model.id === rightModel) ?? models[0];
 
@@ -83,13 +82,7 @@ export function ComparisonWorkspace({ initialLeftModel = "MODEL-CLINICAL-1", ini
         <p className="strategy-help"><strong>Active strategy:</strong> {strategyHelp[strategy]}</p>
         {view === "graph" && <GraphView rows={visibleRows} selected={selected} onSelect={setSelected} leftLabel={`${left.name} v${left.version}`} rightLabel={`${right.name} v${right.version}`} />}
         {view === "freeform" && <FreeformGraphView rows={visibleRows} selected={selected} onSelect={setSelected} leftLabel={`${left.name} v${left.version}`} rightLabel={`${right.name} v${right.version}`} />}
-        {view === "stack" && <StackView status={status} query={query} />}
-
-        <section className="comparison-refine" aria-labelledby="refine-comparison-heading">
-          <h2 id="refine-comparison-heading">Refine comparison results</h2>
-          <div className="summary-strip" aria-label="Comparison summary">{comparisonSummary.map((item) => <button key={item.status} className={`summary-item summary-${item.status}`} aria-pressed={status === item.status} onClick={() => setStatus(status === item.status ? "all" : item.status)}><span>{item.label}</span><strong>{item.count}</strong></button>)}<button className="summary-item summary-total" aria-pressed={status === "all"} onClick={() => setStatus("all")}><span>Total</span><strong>{totalCompared}</strong></button></div>
-          <div className="comparison-filters"><label htmlFor="diff-search">Filter compared entities</label><div><input id="diff-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search handles or match reasons" /><button className="button button-secondary" onClick={() => { setQuery(""); setStatus("all"); }}>Reset filters</button></div></div>
-        </section>
+        {view === "stack" && <StackView />}
 
         <aside className="comparison-detail" aria-live="polite">
           <div><p className="eyebrow">Selected entity</p><h2>{selectedRow.type}: {selectedRow.id.replaceAll("_", " ")}</h2><p>{selectedRow.reason}</p></div>
@@ -101,7 +94,7 @@ export function ComparisonWorkspace({ initialLeftModel = "MODEL-CLINICAL-1", ini
   );
 }
 
-function FreeformGraphView({ rows, selected, onSelect, leftLabel, rightLabel }: { rows: typeof graphRows[number][]; selected: string; onSelect: (id: string) => void; leftLabel: string; rightLabel: string }) {
+function FreeformGraphView({ rows, selected, onSelect, leftLabel, rightLabel }: { rows: readonly typeof graphRows[number][]; selected: string; onSelect: (id: string) => void; leftLabel: string; rightLabel: string }) {
   type Display = "side" | "overlay" | "a" | "b";
   type Layout = "left" | "right" | "overlay";
   const [display, setDisplay] = useState<Display>("side");
@@ -158,9 +151,9 @@ function FreeformGraphView({ rows, selected, onSelect, leftLabel, rightLabel }: 
       <div><p className="eyebrow">Prototype-style topology</p><h2>Free-form model graphs</h2><p>Compare two independent graphs, isolate either model, or merge both into one overlay.</p></div>
       <div className="freeform-mode-controls" role="group" aria-label="Free-form graph display">
         <button type="button" aria-pressed={display === "side"} onClick={() => changeDisplay("side")}>A/B side by side</button>
+        <button type="button" aria-pressed={display === "overlay"} onClick={() => changeDisplay("overlay")}>Overlay</button>
         <button type="button" aria-pressed={display === "a"} onClick={() => changeDisplay("a")}>Model A</button>
         <button type="button" aria-pressed={display === "b"} onClick={() => changeDisplay("b")}>Model B</button>
-        <button type="button" aria-pressed={display === "overlay"} onClick={() => changeDisplay("overlay")}>Overlay</button>
       </div>
     </div>
     <div className="freeform-toolbar">
@@ -213,7 +206,7 @@ function FreeformNode({ node, side, selected, onSelect, onDragStart }: { node: F
   </g>;
 }
 
-function GraphView({ rows, selected, onSelect, leftLabel, rightLabel }: { rows: typeof graphRows[number][]; selected: string; onSelect: (id: string) => void; leftLabel: string; rightLabel: string }) {
+function GraphView({ rows, selected, onSelect, leftLabel, rightLabel }: { rows: readonly typeof graphRows[number][]; selected: string; onSelect: (id: string) => void; leftLabel: string; rightLabel: string }) {
   const [zoom, setZoom] = useState(1);
   const visibleIds = new Set(rows.map((row) => row.id));
   const leftNodes = comparisonGraphs.left.nodes.filter((node) => visibleIds.has(node.id));
@@ -292,9 +285,30 @@ function GraphNode({ node, selected, onSelect }: { node: ComparisonGraphNode; se
   </g>;
 }
 
-function StackView({ status, query }: { status: string; query: string }) {
-  const rows = stackRows.filter((row) => (status === "all" || row.status === status) && (!query || `${row.property} ${row.reason}`.toLocaleLowerCase().includes(query.toLocaleLowerCase())));
-  return <div className="stack-module"><div className="stack-header"><div><span>Model A stack</span><strong>Origin → Model → Value set</strong></div><div><span>Model B stack</span><strong>Origin → Model → Value set</strong></div></div>{rows.length ? rows.map((row) => <article className={`stack-comparison stack-${row.status}`} key={row.id}><div className="stack-title"><div><span className="entity-type">Property</span><h2>{row.property}</h2></div><div><Badge tone={row.status === "changed" ? "warning" : "success"}>{statusLabel(row.status)}</Badge><strong>{Math.round(row.score * 100)}% overlap</strong></div></div><div className="stack-grid"><Stack side="A" stack={row.left} /><div className="stack-connector"><span aria-hidden="true">↔</span><strong>{row.reason}</strong><small>Jaccard {row.score.toFixed(2)}</small></div><Stack side="B" stack={row.right} /></div><details className="term-diff"><summary>View permissible term difference</summary><div className="term-diff-grid"><div><strong>Shared terms</strong><p>{row.left.terms.filter((term) => includesTerm(row.right.terms, term)).join(", ") || "None"}</p></div><div><strong>Model A only</strong><p>{row.left.terms.filter((term) => !includesTerm(row.right.terms, term)).join(", ") || "None"}</p></div><div><strong>Model B only</strong><p>{row.right.terms.filter((term) => !includesTerm(row.left.terms, term)).join(", ") || "None"}</p></div></div></details></article>) : <div className="empty-state"><h3>No value-set stacks match</h3><p>Stack view contains only properties linked to permissible value sets.</p></div>}</div>;
+function StackView() {
+  const [queryA, setQueryA] = useState("");
+  const [queryB, setQueryB] = useState("");
+  const [statusFirst, setStatusFirst] = useState<"changed" | "shared">("changed");
+  const [page, setPage] = useState(1);
+  const pageSize = 2;
+  const rows = [...stackRows]
+    .filter((row) => !queryA || `${row.property} ${row.left.valueSet} ${row.left.terms.join(" ")}`.toLocaleLowerCase().includes(queryA.toLocaleLowerCase()))
+    .filter((row) => !queryB || `${row.property} ${row.right.valueSet} ${row.right.terms.join(" ")}`.toLocaleLowerCase().includes(queryB.toLocaleLowerCase()))
+    .sort((left, right) => Number(right.status === statusFirst) - Number(left.status === statusFirst) || left.property.localeCompare(right.property));
+  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  const visibleRows = rows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  return <div className="stack-module">
+    <div className="stack-header"><div><span>Model A stack</span><strong>Origin → Model → Value set</strong></div><div><span>Model B stack</span><strong>Origin → Model → Value set</strong></div></div>
+    <div className="stack-tools">
+      <label>Search Model A stack<input type="search" value={queryA} onChange={(event) => { setQueryA(event.target.value); setPage(1); }} placeholder="Property, value set, or term" /></label>
+      <label>Search Model B stack<input type="search" value={queryB} onChange={(event) => { setQueryB(event.target.value); setPage(1); }} placeholder="Property, value set, or term" /></label>
+      <div className="stack-status-sort" role="group" aria-label="Order value-set stacks by status"><span>Status first</span><button type="button" aria-pressed={statusFirst === "changed"} onClick={() => { setStatusFirst("changed"); setPage(1); }}>Changed</button><button type="button" aria-pressed={statusFirst === "shared"} onClick={() => { setStatusFirst("shared"); setPage(1); }}>Shared</button></div>
+    </div>
+    {visibleRows.length ? visibleRows.map((row, index) => <details className={`stack-comparison stack-${row.status}`} key={row.id} open={index === 0}><summary className="stack-title"><span><span className="entity-type">Property</span><strong>{row.property}</strong></span><span><Badge tone={row.status === "changed" ? "warning" : "success"}>{statusLabel(row.status)}</Badge><strong>{Math.round(row.score * 100)}% overlap</strong><span className="accordion-label">Open details</span></span></summary><div className="stack-accordion-body"><div className="stack-grid"><Stack side="A" stack={row.left} /><div className="stack-connector"><span aria-hidden="true">↔</span><strong>{row.reason}</strong><small>Jaccard {row.score.toFixed(2)}</small></div><Stack side="B" stack={row.right} /></div><div className="term-diff-grid"><div><strong>Shared terms</strong><p>{row.left.terms.filter((term) => includesTerm(row.right.terms, term)).join(", ") || "None"}</p></div><div><strong>Model A only</strong><p>{row.left.terms.filter((term) => !includesTerm(row.right.terms, term)).join(", ") || "None"}</p></div><div><strong>Model B only</strong><p>{row.right.terms.filter((term) => !includesTerm(row.left.terms, term)).join(", ") || "None"}</p></div></div></div></details>) : <div className="empty-state"><h3>No value-set stacks match</h3><p>Try a broader property, value set, or permissible term.</p></div>}
+    <nav className="stack-pagination" aria-label="Value-set stack pagination"><button type="button" disabled={currentPage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>Previous</button><span>Page {currentPage} of {pageCount}</span><button type="button" disabled={currentPage === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))}>Next</button></nav>
+  </div>;
 }
 
 function includesTerm(terms: readonly string[], term: string) {

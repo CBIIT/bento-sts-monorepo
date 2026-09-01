@@ -1,7 +1,7 @@
 import { type FormEvent, type MouseEvent, useEffect } from "react";
 import { AppShell } from "./components/AppShell";
 import { ComparisonWorkspace } from "./components/ComparisonWorkspace";
-import { ModelEntityView, NodeEntityView, PropertyEntityView, TermEntityView } from "./components/EntityUi";
+import { ModelEntityView, NodeEntityView, PropertyEntityView, TermEntityView, ValueSetEntityView } from "./components/EntityUi";
 import { ModelsExplorer, SearchExplorer, TermsExplorer } from "./components/ExplorerViews";
 import { HomeView } from "./HomeView";
 import { navigate, useRoute } from "./router";
@@ -21,7 +21,7 @@ function RouteView() {
 
   if (pathname === "/") return <HomeView />;
   if (pathname === "/models") return <ModelsExplorer initialIncludePrevious={searchParams.get("previous") === "true"} />;
-  if (pathname === "/search") return <SearchExplorer initialQuery={searchParams.get("q") ?? ""} initialDefinitions={searchParams.get("definitions") === "true"} initialType={searchParams.get("type") ?? "All"} />;
+  if (pathname === "/search") return <SearchExplorer initialQuery={searchParams.get("q") ?? ""} initialDefinitions={searchParams.get("definitions") === "true"} initialType={searchParams.get("type") ?? "All"} initialValueSets={searchParams.get("valueSets") === "true"} />;
   if (pathname === "/terms") return <TermsExplorer initialQuery={searchParams.get("q") ?? ""} initialDefinitions={searchParams.get("definitions") === "true"} initialOrigin={searchParams.get("origin") ?? "all"} />;
   if (pathname === "/compare") {
     const requestedStrategy = searchParams.get("strategy") ?? "exact";
@@ -44,6 +44,7 @@ function RouteView() {
   if (segments[0] === "models" && segments[2] === "nodes" && segments[3]) return <NodeEntityView modelId={segments[1]} nodeId={segments[3]} />;
   if (segments[0] === "models" && segments[2] === "properties" && segments[3]) return <PropertyEntityView modelId={segments[1]} propertyId={segments[3]} />;
   if (segments[0] === "terms" && segments[1]) return <TermEntityView termId={segments[1]} />;
+  if (segments[0] === "value-sets" && segments[1]) return <ValueSetEntityView valueSetId={segments[1]} />;
   return <section className="site-width page-section"><h1>Page not found</h1><p>The requested prototype route is not available.</p></section>;
 }
 

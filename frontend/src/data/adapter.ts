@@ -9,7 +9,7 @@ export const fixtureProvenance = {
 
 export type SearchEntity = {
   id: string;
-  type: "Model" | "Node" | "Property";
+  type: "Model" | "Node" | "Property" | "Value Set";
   handle: string;
   definition: string;
   modelId: string;
@@ -22,14 +22,19 @@ export async function listModels(includePrevious = false) {
   return models.filter((model) => includePrevious || model.current);
 }
 
-export async function searchEntities(query: string, includeDefinitions: boolean) {
+export async function searchEntities(query: string, includeDefinitions: boolean, includeValueSets = false) {
   await wait();
   const needle = query.trim().toLocaleLowerCase();
   if (!needle) return [] as SearchEntity[];
+  const valueSetEntities: SearchEntity[] = includeValueSets ? valueSets.map((valueSet) => {
+    const property = properties.find((item) => item.valueSetId === valueSet.id);
+    return { id: valueSet.id, type: "Value Set", handle: valueSet.handle, definition: `${valueSet.origin} permissible value set`, modelId: property?.modelId ?? "MODEL-CLINICAL-2" };
+  }) : [];
   const haystack: SearchEntity[] = [
     ...models.map((model) => ({ id: model.id, type: "Model" as const, handle: model.handle, definition: model.description, modelId: model.id })),
     ...nodes.map((node) => ({ id: node.id, type: "Node" as const, handle: node.handle, definition: node.definition ?? "", modelId: node.modelId })),
     ...properties.map((property) => ({ id: property.id, type: "Property" as const, handle: property.handle, definition: property.definition ?? "", modelId: property.modelId })),
+    ...valueSetEntities,
   ];
   return haystack.filter((entity) =>
     entity.handle.toLocaleLowerCase().includes(needle) ||
@@ -245,5 +250,32 @@ export const stackRows = [
     reason: "Same permissible value set",
     left: { origin: "NCIt", model: "Clinical Study v1.0", valueSet: "file_format_values", terms: ["FASTQ", "BAM", "CRAM"] },
     right: { origin: "NCIt", model: "Clinical Study v2.0", valueSet: "file_format_values", terms: ["FASTQ", "BAM", "CRAM"] },
+  },
+  {
+    id: "response-stack",
+    property: "response_code",
+    status: "changed",
+    score: 0.75,
+    reason: "Overlapping response terminology",
+    left: { origin: "caDSR", model: "Clinical Study v1.0", valueSet: "response_values", terms: ["Complete Response", "Partial Response", "Stable Disease"] },
+    right: { origin: "caDSR", model: "Clinical Study v2.0", valueSet: "response_values", terms: ["Complete Response", "Partial Response", "Stable Disease", "Progressive Disease"] },
+  },
+  {
+    id: "sex-stack",
+    property: "sex_at_birth",
+    status: "shared",
+    score: 1,
+    reason: "Same CDE and permissible value set",
+    left: { origin: "caDSR", model: "Clinical Study v1.0", valueSet: "sex_at_birth_values", terms: ["Female", "Male", "Unknown"] },
+    right: { origin: "caDSR", model: "Clinical Study v2.0", valueSet: "sex_at_birth_values", terms: ["Female", "Male", "Unknown"] },
+  },
+  {
+    id: "disease-stack",
+    property: "disease_status",
+    status: "changed",
+    score: 0.5,
+    reason: "Normalized property with partial value-set overlap",
+    left: { origin: "NCIt", model: "Clinical Study v1.0", valueSet: "disease_status_v1", terms: ["Active", "Remission"] },
+    right: { origin: "NCIt", model: "Clinical Study v2.0", valueSet: "disease_status_v2", terms: ["Active", "Remission", "Progressive", "Unknown"] },
   },
 ] as const;

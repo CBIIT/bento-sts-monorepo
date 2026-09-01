@@ -114,7 +114,7 @@ export const properties: PropertyEntity[] = [
   { id: "PROP-SAMPLE-TYPE", handle: "sample_type", modelId: "MODEL-CLINICAL-2", nodeId: "NODE-SAMPLE", definition: "Material classification of the sample.", valueType: "enumeration", required: true, valueSetId: "VS-SAMPLE-B" },
   { id: "PROP-FILE-FORMAT", handle: "file_format", modelId: "MODEL-CLINICAL-2", nodeId: "NODE-FILE", definition: "Format in which the file is encoded.", valueType: "enumeration", required: true, valueSetId: "VS-FILE" },
   { id: "PROP-RESPONSE-CODE", handle: "response_code", modelId: "MODEL-CLINICAL-2", nodeId: "NODE-RESPONSE", definition: "Standardized response category.", valueType: "enumeration", required: false, valueSetId: "VS-RESPONSE" },
-  { id: "PROP-DIAGNOSIS-CODE", handle: "diagnosis_code", modelId: "MODEL-CLINICAL-1", nodeId: "NODE-DIAGNOSIS", definition: "Code representing a diagnosis.", valueType: "string", required: false },
+  { id: "PROP-DIAGNOSIS-CODE", handle: "diagnosis_code", modelId: "MODEL-CLINICAL-1", nodeId: "NODE-DIAGNOSIS", definition: "Code representing a diagnosis.", valueType: "enumeration", required: false, valueSetId: "VS-RESPONSE", cdeId: "CDE-0000154625" },
 ];
 
 export const terms: Term[] = [
