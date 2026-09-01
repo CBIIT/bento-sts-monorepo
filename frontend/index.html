@@ -32,12 +32,11 @@
       </div>
       <nav class="primary-nav" aria-label="Primary navigation">
         <div class="page-width nav-row">
-          <a href="#explorer">Explore</a>
-          <a href="#explorer" data-set-mode="terms">Terms</a>
-          <a href="#compare">Compare</a>
-          <a href="#about">About</a>
-          <span class="nav-spacer"></span>
-          <a href="#api">API</a>
+          <a href="#/" data-nav-route="home">Home</a>
+          <a href="#/search" data-nav-route="search">Search</a>
+          <a href="#/models" data-nav-route="models">Models</a>
+          <a href="#/terms" data-nav-route="terms">Terms</a>
+          <a href="#/compare" data-nav-route="compare">Compare</a>
         </div>
       </nav>
     </header>
@@ -62,9 +61,14 @@
               <p class="eyebrow">NCI metadata infrastructure</p>
               <h1 id="hero-title">One view of models and terminology.</h1>
               <p class="hero-summary">Search entities, trace definitions, and compare cancer research models with scientific context intact.</p>
+              <form class="hero-search" id="heroSearchForm" role="search">
+                <label class="sr-only" for="heroSearchInput">Search metadata</label>
+                <input id="heroSearchInput" type="search" placeholder="Search models, properties, terms, and value sets" />
+                <button class="button button-primary" type="submit">Search</button>
+              </form>
               <div class="hero-actions">
-                <a class="button button-primary" href="#explorer">Open workspace</a>
-                <a class="button button-secondary" href="#compare">Compare models</a>
+                <a class="button button-secondary" href="#/models">Browse models</a>
+                <a class="button button-secondary" href="#/compare">Compare models</a>
               </div>
             </div>
           </div>
@@ -100,6 +104,7 @@
                 <legend>Search options</legend>
                 <label><input type="checkbox" id="definitionsToggle" /> Include definitions</label>
                 <label><input type="checkbox" id="currentVersionToggle" checked /> Current versions only</label>
+                <label><input type="checkbox" id="valueSetsToggle" /> Include value sets</label>
               </fieldset>
             </form>
 
@@ -167,17 +172,17 @@
 
           <div class="compare-workspace reveal">
             <div class="compare-toolbar">
-              <fieldset>
-                <legend>View strategy</legend>
-                <label><input type="radio" name="strategy" value="nodes" checked /> Nodes and properties</label>
-                <label><input type="radio" name="strategy" value="flat" /> Flat properties</label>
+              <fieldset class="graph-view-control">
+                <legend>Free-form graph</legend>
+                <label><input type="radio" name="graphView" value="side-by-side" checked /> A/B side by side</label>
+                <label><input type="radio" name="graphView" value="overlay" /> Overlay</label>
+                <label><input type="radio" name="graphView" value="model-a" /> Model A</label>
+                <label><input type="radio" name="graphView" value="model-b" /> Model B</label>
               </fieldset>
               <fieldset>
-                <legend>Equivalence</legend>
-                <label><input type="checkbox" name="equivalence" value="string" checked /> Exact name</label>
-                <label><input type="checkbox" name="equivalence" value="normalized" checked /> Normalized name</label>
-                <label><input type="checkbox" name="equivalence" value="cde" checked /> CDE ID</label>
-                <label><input type="checkbox" name="equivalence" value="valueset" checked /> Value set</label>
+                <legend>Comparison strategy</legend>
+                <label><input type="radio" name="strategy" value="nodes" checked /> Nodes and properties</label>
+                <label><input type="radio" name="strategy" value="flat" /> Flat properties</label>
               </fieldset>
             </div>
 
@@ -200,6 +205,14 @@
                 <tbody id="comparisonBody"></tbody>
               </table>
             </div>
+
+            <section class="value-set-stacks" aria-labelledby="value-set-stacks-title">
+              <div class="value-set-stacks-heading">
+                <h3 id="value-set-stacks-title">Value-set stacks</h3>
+                <p>Search each model stack, sort by comparison status, and open a value set for its full definition.</p>
+              </div>
+              <div id="valueSetStacks"></div>
+            </section>
           </div>
         </div>
       </section>
