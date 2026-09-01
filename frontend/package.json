@@ -1,5 +1,5 @@
 {
-  "name": "bento-sts-frontend",
+  "name": "metadata-explorer-v3",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -8,18 +8,13 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:watch": "vitest"
   },
   "dependencies": {
-    "@tanstack/react-query": "5.83.0",
-    "lucide-react": "0.536.0",
     "react": "19.1.1",
     "react-dom": "19.1.1"
   },
   "devDependencies": {
-    "@axe-core/playwright": "4.10.2",
-    "@playwright/test": "1.62.0",
     "@testing-library/jest-dom": "6.6.4",
     "@testing-library/react": "16.3.0",
     "@testing-library/user-event": "14.6.1",
