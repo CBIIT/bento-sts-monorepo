@@ -50,11 +50,16 @@ it("links the diagnosis property to its value-set detail page", async () => {
 });
 
 it("provides searchable, sortable, paginated value-set accordions", () => {
-  window.history.replaceState(null, "", "/bento-sts-monorepo/v1/#/compare?view=stack");
+  window.history.replaceState(null, "", "/bento-sts-monorepo/v1/#/compare?view=stack&selectedEntity=sample");
   render(<App />);
-  expect(screen.getByRole("searchbox", { name: "Search Model A stack" })).toBeInTheDocument();
-  expect(screen.getByRole("searchbox", { name: "Search Model B stack" })).toBeInTheDocument();
+  expect(screen.getByRole("searchbox", { name: "Search by value-set property name" })).toBeInTheDocument();
   expect(screen.getByRole("navigation", { name: "Value-set stack pagination" })).toHaveTextContent("Page 1 of 3");
   expect(screen.getByRole("group", { name: "Order value-set stacks by status" })).toBeInTheDocument();
-  expect(document.querySelector("details.stack-comparison")).toBeInTheDocument();
+  expect(document.querySelectorAll("details.stack-comparison")).toHaveLength(5);
+  expect(screen.queryByText("Selected entity")).not.toBeInTheDocument();
+  expect(window.location.hash).not.toContain("selectedEntity");
+
+  fireEvent.change(screen.getByRole("searchbox", { name: "Search by value-set property name" }), { target: { value: "vital_status" } });
+  expect(document.querySelectorAll("details.stack-comparison")).toHaveLength(1);
+  expect(screen.getByText("vital_status")).toBeInTheDocument();
 });

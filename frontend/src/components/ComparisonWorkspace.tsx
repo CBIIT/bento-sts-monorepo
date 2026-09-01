@@ -38,7 +38,7 @@ export function ComparisonWorkspace({ initialLeftModel = "MODEL-CLINICAL-1", ini
     if (status !== "all") params.set("status", status);
     if (query) params.set("query", query);
     if (strategy === "overlap") params.set("overlapThreshold", threshold.toFixed(2));
-    if (selected) params.set("selectedEntity", selected);
+    if (view !== "stack" && selected) params.set("selectedEntity", selected);
     replaceCompareRoute(params);
   }, [leftModel, rightModel, view, strategy, status, query, threshold, selected]);
 
@@ -84,11 +84,11 @@ export function ComparisonWorkspace({ initialLeftModel = "MODEL-CLINICAL-1", ini
         {view === "freeform" && <FreeformGraphView rows={visibleRows} selected={selected} onSelect={setSelected} leftLabel={`${left.name} v${left.version}`} rightLabel={`${right.name} v${right.version}`} />}
         {view === "stack" && <StackView />}
 
-        <aside className="comparison-detail" aria-live="polite">
+        {view !== "stack" && <aside className="comparison-detail" aria-live="polite">
           <div><p className="eyebrow">Selected entity</p><h2>{selectedRow.type}: {selectedRow.id.replaceAll("_", " ")}</h2><p>{selectedRow.reason}</p></div>
           <Badge tone={selectedRow.status === "changed" ? "warning" : selectedRow.status === "ambiguous" ? "purple" : "neutral"}>{statusLabel(selectedRow.status)}</Badge>
           <dl><div><dt>Model A</dt><dd>{selectedRow.left}</dd></div><div><dt>Model B</dt><dd>{selectedRow.right}</dd></div><div><dt>Match reason</dt><dd>{selectedRow.reason}</dd></div></dl>
-        </aside>
+        </aside>}
       </div>
     </section>
   );
@@ -286,14 +286,13 @@ function GraphNode({ node, selected, onSelect }: { node: ComparisonGraphNode; se
 }
 
 function StackView() {
-  const [queryA, setQueryA] = useState("");
-  const [queryB, setQueryB] = useState("");
+  const [propertyQuery, setPropertyQuery] = useState("");
   const [statusFirst, setStatusFirst] = useState<"changed" | "shared">("changed");
   const [page, setPage] = useState(1);
-  const pageSize = 2;
+  const pageSize = 5;
+  const normalizedPropertyQuery = propertyQuery.trim().toLocaleLowerCase();
   const rows = [...stackRows]
-    .filter((row) => !queryA || `${row.property} ${row.left.valueSet} ${row.left.terms.join(" ")}`.toLocaleLowerCase().includes(queryA.toLocaleLowerCase()))
-    .filter((row) => !queryB || `${row.property} ${row.right.valueSet} ${row.right.terms.join(" ")}`.toLocaleLowerCase().includes(queryB.toLocaleLowerCase()))
+    .filter((row) => !normalizedPropertyQuery || row.property.toLocaleLowerCase().includes(normalizedPropertyQuery))
     .sort((left, right) => Number(right.status === statusFirst) - Number(left.status === statusFirst) || left.property.localeCompare(right.property));
   const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
   const currentPage = Math.min(page, pageCount);
@@ -302,11 +301,10 @@ function StackView() {
   return <div className="stack-module">
     <div className="stack-header"><div><span>Model A stack</span><strong>Origin → Model → Value set</strong></div><div><span>Model B stack</span><strong>Origin → Model → Value set</strong></div></div>
     <div className="stack-tools">
-      <label>Search Model A stack<input type="search" value={queryA} onChange={(event) => { setQueryA(event.target.value); setPage(1); }} placeholder="Property, value set, or term" /></label>
-      <label>Search Model B stack<input type="search" value={queryB} onChange={(event) => { setQueryB(event.target.value); setPage(1); }} placeholder="Property, value set, or term" /></label>
+      <label className="stack-property-search">Search by value-set property name<input type="search" value={propertyQuery} onChange={(event) => { setPropertyQuery(event.target.value); setPage(1); }} placeholder="Example: sample_type" /></label>
       <div className="stack-status-sort" role="group" aria-label="Order value-set stacks by status"><span>Status first</span><button type="button" aria-pressed={statusFirst === "changed"} onClick={() => { setStatusFirst("changed"); setPage(1); }}>Changed</button><button type="button" aria-pressed={statusFirst === "shared"} onClick={() => { setStatusFirst("shared"); setPage(1); }}>Shared</button></div>
     </div>
-    {visibleRows.length ? visibleRows.map((row, index) => <details className={`stack-comparison stack-${row.status}`} key={row.id} open={index === 0}><summary className="stack-title"><span><span className="entity-type">Property</span><strong>{row.property}</strong></span><span><Badge tone={row.status === "changed" ? "warning" : "success"}>{statusLabel(row.status)}</Badge><strong>{Math.round(row.score * 100)}% overlap</strong><span className="accordion-label">Open details</span></span></summary><div className="stack-accordion-body"><div className="stack-grid"><Stack side="A" stack={row.left} /><div className="stack-connector"><span aria-hidden="true">↔</span><strong>{row.reason}</strong><small>Jaccard {row.score.toFixed(2)}</small></div><Stack side="B" stack={row.right} /></div><div className="term-diff-grid"><div><strong>Shared terms</strong><p>{row.left.terms.filter((term) => includesTerm(row.right.terms, term)).join(", ") || "None"}</p></div><div><strong>Model A only</strong><p>{row.left.terms.filter((term) => !includesTerm(row.right.terms, term)).join(", ") || "None"}</p></div><div><strong>Model B only</strong><p>{row.right.terms.filter((term) => !includesTerm(row.left.terms, term)).join(", ") || "None"}</p></div></div></div></details>) : <div className="empty-state"><h3>No value-set stacks match</h3><p>Try a broader property, value set, or permissible term.</p></div>}
+    {visibleRows.length ? visibleRows.map((row, index) => <details className={`stack-comparison stack-${row.status}`} key={row.id} open={index === 0}><summary className="stack-title"><span><span className="entity-type">Property</span><strong>{row.property}</strong></span><span><Badge tone={row.status === "changed" ? "warning" : "success"}>{statusLabel(row.status)}</Badge><strong>{Math.round(row.score * 100)}% overlap</strong><span className="accordion-label">Open details</span></span></summary><div className="stack-accordion-body"><div className="stack-grid"><Stack side="A" stack={row.left} /><div className="stack-connector"><span aria-hidden="true">↔</span><strong>{row.reason}</strong><small>Jaccard {row.score.toFixed(2)}</small></div><Stack side="B" stack={row.right} /></div><div className="term-diff-grid"><div><strong>Shared terms</strong><p>{row.left.terms.filter((term) => includesTerm(row.right.terms, term)).join(", ") || "None"}</p></div><div><strong>Model A only</strong><p>{row.left.terms.filter((term) => !includesTerm(row.right.terms, term)).join(", ") || "None"}</p></div><div><strong>Model B only</strong><p>{row.right.terms.filter((term) => !includesTerm(row.left.terms, term)).join(", ") || "None"}</p></div></div></div></details>) : <div className="empty-state"><h3>No value-set stacks match</h3><p>Try a broader value-set property name.</p></div>}
     <nav className="stack-pagination" aria-label="Value-set stack pagination"><button type="button" disabled={currentPage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>Previous</button><span>Page {currentPage} of {pageCount}</span><button type="button" disabled={currentPage === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))}>Next</button></nav>
   </div>;
 }

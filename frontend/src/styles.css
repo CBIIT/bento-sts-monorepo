@@ -370,7 +370,8 @@ tbody th small, td code { display: block; margin-top: 4px; color: var(--muted); 
 .stack-header span, .stack-header strong { display: block; }
 .stack-header span { color: #c7dcf5; font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .stack-module { padding-bottom: 24px; }
-.stack-tools { display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: end; padding: 20px 24px; border-bottom: 1px solid var(--line); background: white; }
+.stack-tools { display: grid; grid-template-columns: minmax(320px, 1fr) auto; gap: 16px; align-items: end; padding: 20px 24px; border-bottom: 1px solid var(--line); background: white; }
+.stack-property-search { max-width: 620px; }
 .stack-tools label { display: grid; gap: 7px; color: var(--navy); font-size: .82rem; font-weight: 800; }
 .stack-tools input { min-height: 44px; border: 1px solid #8497ad; padding: 8px 11px; color: var(--text); }
 .stack-status-sort { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
