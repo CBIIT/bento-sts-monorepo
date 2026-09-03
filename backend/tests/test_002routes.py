@@ -6,11 +6,13 @@ from importlib.metadata import version as pkg_version
 class TestVersionRoot:
     """Tests for /v2 base endpoint"""
 
-    def test_version_root_get(self, test_sts_client):
+    def test_version_root_get(self, test_sts_client, monkeypatch):
+        monkeypatch.setenv("STS_IMAGE_TAG", "2.5.0.27.2")
         response = test_sts_client.get("/v2")
         assert response.status_code == 200
         assert response.json() == {
             "application": "STS",
+            "image": "2.5.0.27.2",
             "status": "READY",
             "version": pkg_version("bento-sts"),
         }

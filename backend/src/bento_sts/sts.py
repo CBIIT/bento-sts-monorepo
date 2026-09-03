@@ -1,3 +1,4 @@
+import os
 import semver
 from fastapi import Depends, FastAPI, APIRouter
 from importlib.metadata import version as pkg_version
@@ -30,6 +31,7 @@ def _ready_payload() -> dict[str, str]:
         "application": "STS",
         "version": pkg_version("bento-sts"),
         "status": "READY",
+        "image": os.environ.get("STS_IMAGE_TAG", "not-configured"),
     }
 
 
