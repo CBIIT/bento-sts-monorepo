@@ -122,6 +122,7 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build --no-cache \
+            --build-arg STS_IMAGE_TAG="$IMAGE_TAG" \
             -t $IMAGE_NAME \
             -f ${{ matrix.dockerfile }} \
             ${{ matrix.context }}

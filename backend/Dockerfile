@@ -1,5 +1,7 @@
 FROM python:3.14.4-alpine3.23
 
+ARG STS_IMAGE_TAG=not-configured
+
 EXPOSE 8000/tcp
 
 WORKDIR /app
@@ -20,6 +22,7 @@ COPY src ./src
 RUN uv pip install --no-cache --system .
 
 ENV PYTHONUNBUFFERED=1
+ENV STS_IMAGE_TAG=${STS_IMAGE_TAG}
 
 # Create non-root user for security
 RUN addgroup -g 1000 appuser && \
