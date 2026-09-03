@@ -1,5 +1,21 @@
 # tests/test_routes.py
 import pytest
+from importlib.metadata import version as pkg_version
+
+
+class TestVersionRoot:
+    """Tests for /v2 base endpoint"""
+
+    def test_version_root_get(self, test_sts_client, monkeypatch):
+        monkeypatch.setenv("STS_IMAGE_TAG", "2.5.0.27.2")
+        response = test_sts_client.get("/v2")
+        assert response.status_code == 200
+        assert response.json() == {
+            "application": "STS",
+            "image": "2.5.0.27.2",
+            "status": "READY",
+            "version": pkg_version("bento-sts"),
+        }
 
 class TestTagsRouter:
     """Tests for /tags endpoints"""
@@ -408,16 +424,222 @@ class TestTermsRouter:
         assert result[0]['permissibleValues'] == []
 
 
+class TestEdpsRouter:
+    """Tests for /edps endpoints"""
+
+    def test_edps_get_by_origin(self, test_sts_client):
+        response = test_sts_client.get("/v2/edps/caDSR")
+        assert response.status_code == 200
+        assert isinstance(response.json(), list)
+
+    def test_edps_get_by_origin_with_pagination(self, test_sts_client):
+        response = test_sts_client.get("/v2/edps/caDSR?skip=0&limit=5")
+        assert response.status_code == 200
+        assert isinstance(response.json(), list)
+        assert len(response.json()) <= 5
+
+    def test_edps_get_by_origin_nonexistent(self, test_sts_client):
+        response = test_sts_client.get("/v2/edps/nonexistent_origin")
+        assert response.status_code in [200, 404]
+        if response.status_code == 200:
+            assert response.json() == []
+
+    def test_edps_get_returns_term_objects(self, test_sts_client):
+        response = test_sts_client.get("/v2/edps/caDSR?limit=1")
+        assert response.status_code == 200
+        if response.json():
+            term = response.json()[0]
+            assert "value" in term
+            assert "type" in term
+
+    def test_edps_properties_by_origin_id_version(self, test_sts_client):
+        edps_response = test_sts_client.get("/v2/edps/caDSR?limit=1")
+        assert edps_response.status_code == 200
+
+        if not edps_response.json():
+            pytest.skip("No EDP terms returned from /v2/edps/caDSR; cannot test properties endpoint")
+
+        term = edps_response.json()[0]
+        origin_id = term.get("origin_id")
+        origin_version = term.get("origin_version")
+
+        if not (origin_id and origin_version):
+            pytest.skip("EDP term missing origin_id/origin_version; cannot test properties endpoint")
+
+        response = test_sts_client.get(
+            f"/v2/edps/caDSR/{origin_id}/{origin_version}/properties"
+        )
+        assert response.status_code == 200
+        assert isinstance(response.json(), list)
+
+    def test_edps_properties_returns_property_objects(self, test_sts_client):
+        edps_response = test_sts_client.get("/v2/edps/caDSR?limit=1")
+        assert edps_response.status_code == 200
+        if not edps_response.json():
+            pytest.skip("No EDP terms returned from /v2/edps/caDSR; cannot test properties endpoint")
+        term = edps_response.json()[0]
+        origin_id = term.get("origin_id")
+        origin_version = term.get("origin_version")
+        if not (origin_id and origin_version):
+            pytest.skip("EDP term missing origin_id/origin_version; cannot test properties endpoint")
+        response = test_sts_client.get(
+            f"/v2/edps/caDSR/{origin_id}/{origin_version}/properties"
+        )
+        assert response.status_code == 200
+        props = response.json()
+        assert isinstance(props, list)
+        if not props:
+            pytest.skip("No model properties found for selected EDP; cannot validate Property response shape")
+        prop = props[0]
+        assert prop["type"] == "Property"
+        assert "handle" in prop
+        assert "model" in prop
+        assert "value_domain" in prop
+    
+    def test_edps_properties_unknown_edp_returns_404(self, test_sts_client):
+        response = test_sts_client.get(
+            "/v2/edps/caDSR/nonexistent_edp/999/properties"
+        )
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Not found."
+
+class TestEdpRouter:
+    """Tests for /edp endpoints"""
+
+    def test_edp_pvs_by_origin_id_version(self, test_sts_client):
+        # First get an EDP term to find valid origin/id/version
+        edps_response = test_sts_client.get("/v2/edps/caDSR?limit=1")
+        if edps_response.status_code == 200 and edps_response.json():
+            term = edps_response.json()[0]
+            origin_id = term.get("origin_id")
+            origin_version = term.get("origin_version")
+            if origin_id and origin_version:
+                response = test_sts_client.get(
+                    f"/v2/edp/caDSR/{origin_id}/{origin_version}/terms"
+                )
+                assert response.status_code == 200
+                assert isinstance(response.json(), list)
+
+    def test_edp_pvs_by_origin_id_version_nonexistent(self, test_sts_client):
+        response = test_sts_client.get(
+            "/v2/edp/caDSR/9999999/99.99/terms"
+        )
+        assert response.status_code in [200, 404]
+        if response.status_code == 200:
+            assert response.json() == []
+
+    def test_edp_pvs_by_origin_id_version_with_pagination(self, test_sts_client):
+        edps_response = test_sts_client.get("/v2/edps/caDSR?limit=1")
+        if edps_response.status_code == 200 and edps_response.json():
+            term = edps_response.json()[0]
+            origin_id = term.get("origin_id")
+            origin_version = term.get("origin_version")
+            if origin_id and origin_version:
+                response = test_sts_client.get(
+                    f"/v2/edp/caDSR/{origin_id}/{origin_version}/terms?skip=0&limit=5"
+                )
+                assert response.status_code == 200
+                assert isinstance(response.json(), list)
+                assert len(response.json()) <= 5
+
+    def test_edp_pvs_returns_term_objects(self, test_sts_client):
+        edps_response = test_sts_client.get("/v2/edps/caDSR?limit=1")
+        if edps_response.status_code == 200 and edps_response.json():
+            term = edps_response.json()[0]
+            origin_id = term.get("origin_id")
+            origin_version = term.get("origin_version")
+            if origin_id and origin_version:
+                response = test_sts_client.get(
+                    f"/v2/edp/caDSR/{origin_id}/{origin_version}/terms"
+                )
+                assert response.status_code == 200
+                if response.json():
+                    pv_term = response.json()[0]
+                    assert "value" in pv_term
+                    assert "type" in pv_term
+
+
 class TestEdgeCases:
     """Test edge cases and error handling"""
     
     def test_invalid_pagination_params(self, test_sts_client):
         response = test_sts_client.get("/v2/tags?skip=-1&limit=-5")
         assert response.status_code == 422
+
+    def test_mixed_invalid_pagination_params(self, test_sts_client):
+        huge_value = "999999999999999999999999"
+        cases = [
+            (f"skip={huge_value}&limit={huge_value}", {
+                "skip": (
+                    "value_too_large",
+                    "Requested pagination value is too large.",
+                ),
+                "limit": (
+                    "value_too_large",
+                    "Requested pagination value is too large.",
+                ),
+            }),
+            (f"skip=-1&limit={huge_value}", {
+                "skip": (
+                    "greater_than_equal",
+                    "Input should be greater than or equal to 0",
+                ),
+                "limit": (
+                    "value_too_large",
+                    "Requested pagination value is too large.",
+                ),
+            }),
+            (f"limit=abc123&skip={huge_value}", {
+                "skip": (
+                    "value_too_large",
+                    "Requested pagination value is too large.",
+                ),
+                "limit": (
+                    "int_parsing",
+                    "Input should be a valid integer, unable to parse "
+                    "string as an integer",
+                ),
+            }),
+        ]
+        for query, expected_errors in cases:
+            response = test_sts_client.get(
+                f"/v2/edp/CRDC/CRDC0002/1/terms?{query}"
+            )
+            assert response.status_code == 422
+            detail = response.json()["detail"]
+            assert len(detail) >= 2
+            actual_errors = {
+                error["loc"][-1]: (error["type"], error["msg"])
+                for error in detail
+            }
+            assert actual_errors == expected_errors
+
+        response = test_sts_client.get(
+            f"/v2/edps/CRDC?skip=-1&limit={huge_value}"
+        )
+        assert len(response.json()["detail"]) == 2
     
     def test_very_large_limit(self, test_sts_client):
         response = test_sts_client.get("/v2/tags?limit=1000000")
         assert response.status_code == 200
+
+    def test_out_of_range_skip(self, test_sts_client):
+        response = test_sts_client.get(
+            f"/v2/edp/CRDC/CRDC0002/1/terms?skip={2**63}"
+        )
+        assert response.status_code == 422
+        assert response.json()["detail"][0]["loc"] == ["query", "skip"]
+        assert response.json()["detail"][0]["msg"] == (
+            "Requested pagination value is too large."
+        )
+
+    def test_out_of_range_limit(self, test_sts_client):
+        response = test_sts_client.get(f"/v2/edps/CRDC?limit={2**63}")
+        assert response.status_code == 422
+        assert response.json()["detail"][0]["loc"] == ["query", "limit"]
+        assert response.json()["detail"][0]["msg"] == (
+            "Requested pagination value is too large."
+        )
     
     def test_special_characters_in_params(self, test_sts_client):
         response = test_sts_client.get("/v2/tag/key%20with%20spaces/value")

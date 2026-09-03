@@ -1,8 +1,9 @@
+import os
 import semver
 from fastapi import Depends, FastAPI, APIRouter
 from importlib.metadata import version as pkg_version
 from .dependencies import get_mdb
-from .routers import id, model, models, tag, tags, terms
+from .routers import admin, id, model, models, tag, tags, terms, edps, edp
 
 app = FastAPI(
     title="Simple Terminology Server",
@@ -18,9 +19,28 @@ queried via this interface. Data models are stored in an instance of a
     dependencies=[Depends(get_mdb)]
 )
 
+VERSION_PREFIX = "/v" + str(semver.Version.parse(pkg_version("bento-sts")).major)
+
 vrouter = APIRouter(
-    prefix="/v"+str(semver.Version.parse(pkg_version("bento-sts")).major)
+    prefix=VERSION_PREFIX
 )
+
+
+def _ready_payload() -> dict[str, str]:
+    return {
+        "application": "STS",
+        "version": pkg_version("bento-sts"),
+        "status": "READY",
+        "image": os.environ.get("STS_IMAGE_TAG", "not-configured"),
+    }
+
+
+@vrouter.get("", include_in_schema=False)
+@vrouter.get("/", include_in_schema=False)
+def version_root():
+    return _ready_payload()
+
+
 vrouter.include_router(id.router)
 vrouter.include_router(model.router)
 vrouter.include_router(models.router)
@@ -28,13 +48,14 @@ vrouter.include_router(tag.router)
 vrouter.include_router(tags.router)
 vrouter.include_router(terms.router)
 
+vrouter.include_router(admin.router)
+vrouter.include_router(edps.router)
+vrouter.include_router(edp.router)
+
+
 app.include_router(vrouter)
 
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 def root():
-    return {
-        "application": "STS",
-        "version": f"{pkg_version('bento-sts')}",
-        "status": "READY",
-    },
+    return _ready_payload()
