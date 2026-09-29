@@ -107,7 +107,7 @@ class CDEPermissibleValuesModel(BaseModel):
     model: str
     property: str
     version: str
-    permissibleValues: List[PermissibleValue]
+    permissibleValues: List[Term | PermissibleValue]
 
 
 class CDEPermissibleValues(BaseModel):
