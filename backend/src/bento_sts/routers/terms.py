@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, Request
+import asyncio
+from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List
 from functools import cmp_to_key
 from ..dependencies import paging_params
 from ..pymodels import CDEPermissibleValuesModel, CDEPermissibleValues
 from ..converters import neo_to_py
+from .edps import edp_properties_get, edps_by_model_get
 from ..utility.version_utils import model_version_compare
 
 router = APIRouter(
@@ -22,12 +24,22 @@ router = APIRouter(
         422: {"description": "Bad parameters (model or property or version or skip or limit?)"},
     },
 )
-def pvs_synonyms_model_version_get(request: Request, model: str, property: str = "", version: str | None = None):
+async def pvs_synonyms_model_version_get(
+    request: Request,
+    model: str,
+    property: str = "",
+    version: str | None = None,
+):
     # If version is not provided, get the latest version for the model
     if version is None or version.strip() == "":
         # find a model with is_latest_version
         stmt = "MATCH (m:model {handle:$p0, is_latest_version:true}) RETURN m AS model"
-        result = request.state.mdb.get_with_statement(stmt, {"p0": model}, raise_on_empty=False)
+        result = await asyncio.to_thread(
+            request.state.mdb.get_with_statement,
+            stmt,
+            {"p0": model},
+            raise_on_empty=False,
+        )
         
         if result:
             # Found models with is_latest_version
@@ -36,7 +48,11 @@ def pvs_synonyms_model_version_get(request: Request, model: str, property: str =
         else:
             # get all versions and pick the latest version
             stmt = "MATCH (m:model {handle:$p0}) RETURN m AS model"
-            result = request.state.mdb.get_with_statement(stmt, {"p0": model})
+            result = await asyncio.to_thread(
+                request.state.mdb.get_with_statement,
+                stmt,
+                {"p0": model},
+            )
             models = [neo_to_py(row['model']) for row in result]
             version = sorted(models, key=cmp_to_key(model_version_compare))[-1].version
     
@@ -120,11 +136,28 @@ def pvs_synonyms_model_version_get(request: Request, model: str, property: str =
         ELSE all_pvs
       END AS permissibleValues
 """
-    ret = request.state.mdb.get_with_statement(
-        stmt,
-        params
+    ret, edps_by_property = await asyncio.gather(
+        asyncio.to_thread(
+            request.state.mdb.get_with_statement,
+            stmt,
+            params,
+        ),
+        asyncio.to_thread(
+            edps_by_model_get,
+            request,
+            model,
+            version,
+            property,
+        ),
     )
-    return [record.data() if hasattr(record, 'data') else dict(record.items()) for record in ret]
+
+    results = [
+        record.data() if hasattr(record, "data") else dict(record.items())
+        for record in ret
+    ]
+    for result in results:
+        result["edps"] = edps_by_property.get(result["property"], [])
+    return results
     
 
 @router.get(
@@ -137,7 +170,12 @@ def pvs_synonyms_model_version_get(request: Request, model: str, property: str =
         422: {"description": "Bad parameters (id or version or skip or limit?)"},
     },
 )
-def cde_pvs_by_id_with_version_get(request: Request, id: str, version: str, use_null_cde: bool = False):
+async def cde_pvs_by_id_with_version_get(
+    request: Request,
+    id: str,
+    version: str,
+    use_null_cde: bool = False,
+):
     NULL_CDE_ID = '16476366|1'
 
     # noinspection SqlDialectInspection,SqlNoDataSourceInspection
@@ -185,9 +223,36 @@ def cde_pvs_by_id_with_version_get(request: Request, id: str, version: str, use_
         ELSE all_pvs
       END AS permissibleValues
     RETURN distinct CDECode, CDEVersion, CDEFullName, permissibleValues"""
-    ret = request.state.mdb.get_with_statement(
-        stmt,
-        {"p0": id, "p1": version, "p2": request.state.skip, "p3": request.state.limit},
-        raise_on_empty=False
+
+    def get_edp_properties():
+        try:
+            return edp_properties_get(request, "caDSR", id, version)
+        except HTTPException as exc:
+            # Not every CDE is an EDP. Preserve this endpoint's existing 200
+            # response while the standalone EDP endpoint continues to return 404.
+            if exc.status_code == 404:
+                return []
+            raise
+
+    ret, models = await asyncio.gather(
+        asyncio.to_thread(
+            request.state.mdb.get_with_statement,
+            stmt,
+            {
+                "p0": id,
+                "p1": version,
+                "p2": request.state.skip,
+                "p3": request.state.limit,
+            },
+            raise_on_empty=False,
+        ),
+        asyncio.to_thread(get_edp_properties),
     )
-    return [record.data() if hasattr(record, 'data') else dict(record.items()) for record in ret]
+
+    return [
+        {
+            **(record.data() if hasattr(record, "data") else dict(record.items())),
+            "models": models,
+        }
+        for record in ret
+    ]
