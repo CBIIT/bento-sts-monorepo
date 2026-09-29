@@ -107,15 +107,13 @@ class CDEPermissibleValuesModel(BaseModel):
     model: str
     property: str
     version: str
-    edps: List[Term]
-    permissibleValues: List[PermissibleValue]
+    permissibleValues: List[Term | PermissibleValue]
 
 
 class CDEPermissibleValues(BaseModel):
     CDECode: str
     CDEFullName: str
     CDEVersion: str
-    models: List[Property]
     permissibleValues: List[PermissibleValue]
 
 

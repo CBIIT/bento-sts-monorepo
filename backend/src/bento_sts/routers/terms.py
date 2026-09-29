@@ -1,11 +1,11 @@
 import asyncio
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 from typing import List
 from functools import cmp_to_key
 from ..dependencies import paging_params
 from ..pymodels import CDEPermissibleValuesModel, CDEPermissibleValues
 from ..converters import neo_to_py
-from .edps import edp_properties_get, edps_by_model_get
+from .edps import edps_by_model_get
 from ..utility.version_utils import model_version_compare
 
 router = APIRouter(
@@ -61,14 +61,16 @@ async def pvs_synonyms_model_version_get(
     
     # Build parameters and query based on whether property is specified
     has_property = property and property != ""
-    params = {"p0": model, "p1": version, "p3": request.state.skip, "p4": request.state.limit} | ({"p2": property} if has_property else {})
+    params = {"p0": model, "p1": version} | (
+        {"p2": property} if has_property else {}
+    )
     NULL_CDE_ID = '16476366|1'
     USE_NULL_CDE_TAG = 'useNullCDE'
 
     # noinspection SqlDialectInspection,SqlNoDataSourceInspection
-    stmt = f"""
+    stmt = """
     // Start with the model node and get the property (or all properties if not specified)
-    MATCH (n0:node {{model:$p0}})-[r0:has_property]->(n1:property)
+    MATCH (n0:node {model:$p0})-[r0:has_property]->(n1:property)
     WITH n1 AS prop
     WHERE n0.version = $p1""" + (" AND prop.handle = $p2" if has_property else "") + f"""
     // Get the CDE term associated with the property (if any)
@@ -126,15 +128,10 @@ async def pvs_synonyms_model_version_get(
     WITH prop,
       [pv_item IN apoc.coll.toSet(apoc.coll.flatten(collect(DISTINCT {{value: pv_val, synonyms: syn_vals, ncit_concept_code: ncit_oid}}))) WHERE pv_item.value IS NOT NULL] AS formatted_pvs
     WITH prop, formatted_pvs AS all_pvs
-    // Return the results with pagination support
-
+    // Return the results; pagination is applied after EDP terms are merged.
     RETURN DISTINCT $p0 AS model, $p1 AS version,
       prop AS property,
-      CASE 
-        WHEN $p4 > 0 THEN all_pvs[$p3..($p3 + $p4)]
-        WHEN $p3 > 0 THEN all_pvs[$p3..]
-        ELSE all_pvs
-      END AS permissibleValues
+      all_pvs AS permissibleValues
 """
     ret, edps_by_property = await asyncio.gather(
         asyncio.to_thread(
@@ -156,7 +153,17 @@ async def pvs_synonyms_model_version_get(
         for record in ret
     ]
     for result in results:
-        result["edps"] = edps_by_property.get(result["property"], [])
+        all_values = (
+            edps_by_property.get(result["property"], [])
+            + result["permissibleValues"]
+        )
+        skip = request.state.skip or 0
+        limit = request.state.limit or 0
+        result["permissibleValues"] = (
+            all_values[skip : skip + limit]
+            if limit > 0
+            else all_values[skip:]
+        )
     return results
     
 
@@ -170,7 +177,7 @@ async def pvs_synonyms_model_version_get(
         422: {"description": "Bad parameters (id or version or skip or limit?)"},
     },
 )
-async def cde_pvs_by_id_with_version_get(
+def cde_pvs_by_id_with_version_get(
     request: Request,
     id: str,
     version: str,
@@ -184,19 +191,62 @@ async def cde_pvs_by_id_with_version_get(
     // Start with the CDE term by origin_id and optionally version
     MATCH (n0:term {{origin_id: $p0 }})
       WHERE $p1 = "none" OR n0.origin_version = $p1
-    // Get the CDE's official PVs from the value set
-    OPTIONAL MATCH (vs:value_set)-[:has_term]->(pv:term)
-      WHERE vs.handle = $p0 + '|' + coalesce(n0.origin_version, "")
-    WITH n0, vs.url as value_set_url, COLLECT(pv) as pvs
+    // TODO: Fix UBERON loading so equivalent version spellings do not need to
+    // be searched together.
+    // An imported EDP can have equivalent version spellings (for example, 1 and
+    // 1.00).  The exact-version EDP can point at a reference URL while its
+    // equivalent sibling points at the value set whose terms were actually
+    // loaded.  Inspect all numerically equivalent EDP versions.
+    OPTIONAL MATCH (equivalent_edp:term {{
+      origin_id: n0.origin_id,
+      origin_name: n0.origin_name
+    }})-[:specifies_value_set]->(candidate_vs:value_set)
+      WHERE equivalent_edp = n0
+        OR (
+          toFloat(equivalent_edp.origin_version) IS NOT NULL
+          AND toFloat(n0.origin_version) IS NOT NULL
+          AND toFloat(equivalent_edp.origin_version) = toFloat(n0.origin_version)
+        )
+    OPTIONAL MATCH (candidate_vs)-[:has_term]->(candidate_pv:term)
+    WITH n0, candidate_vs,
+      COLLECT(DISTINCT candidate_pv) AS candidate_pvs
+    WITH n0,
+      COLLECT(
+        CASE WHEN candidate_vs IS NULL THEN null ELSE {{
+          url: candidate_vs.url,
+          pvs: candidate_pvs
+        }} END
+      ) AS candidate_value_sets
+    // Imported ontology value sets contain loaded terms and do not carry the
+    // caDSR reference URL. Prefer them over URL-only/reference value sets.
+    WITH n0, candidate_value_sets,
+      [candidate IN candidate_value_sets
+        WHERE candidate.url IS NULL AND size(candidate.pvs) > 0
+      ] AS loaded_value_sets
+    WITH n0,
+      CASE WHEN size(loaded_value_sets) > 0
+        THEN loaded_value_sets
+        ELSE candidate_value_sets
+      END AS selected_value_sets
+    WITH n0,
+      apoc.coll.toSet(apoc.coll.flatten(
+        [candidate IN selected_value_sets | candidate.pvs]
+      )) AS edp_pvs
+    // Preserve support for CDEs that do not have specifies_value_set yet.
+    OPTIONAL MATCH (fallback_vs:value_set)-[:has_term]->(fallback_pv:term)
+      WHERE fallback_vs.handle = $p0 + '|' + coalesce(n0.origin_version, "")
+    WITH n0, edp_pvs, COLLECT(DISTINCT fallback_pv) AS fallback_pvs
+    WITH n0,
+      CASE WHEN size(edp_pvs) > 0 THEN edp_pvs ELSE fallback_pvs END AS pvs
     // Get the null CDE PVs only if use_null_cde flag is true
     OPTIONAL MATCH (null_vs:value_set {{handle: "{NULL_CDE_ID}"}})-[:has_term]->(null_pv:term)
-    WITH n0, value_set_url, pvs,
+    WITH n0, pvs,
       CASE WHEN {use_null} THEN COLLECT(DISTINCT null_pv) ELSE [] END AS null_pvs
     // Get regular PV values for deduplication
-    WITH n0, value_set_url, pvs, null_pvs,
+    WITH n0, pvs, null_pvs,
       [pv IN pvs | pv.value] AS regular_pv_values
     // Combine regular PVs with null PVs (exclude duplicates)
-    WITH n0, value_set_url,
+    WITH n0,
       pvs + [npv IN null_pvs WHERE NOT npv.value IN regular_pv_values] AS all_pvs_combined
     // Process all PVs together (regular + null)
     UNWIND CASE WHEN size(all_pvs_combined) > 0 THEN all_pvs_combined ELSE [null] END AS pv
@@ -206,12 +256,12 @@ async def cde_pvs_by_id_with_version_get(
     // Find any synonyms associated with the NCIt term in the NCI Metathesaurus data
     OPTIONAL MATCH (ncit_term)-[:represents]->(c_ncim:concept)<-[:represents]-(syn:term), (c_ncim)-[:has_tag]->(:tag {{key: "mapping_source", value: "NCIm"}})
       WHERE pv IS NOT NULL AND (syn IS NULL OR (pv <> syn AND pv.value <> syn.value))
-    WITH n0, value_set_url,
+    WITH n0,
       CASE WHEN pv IS NULL THEN null ELSE pv.value END as pv_val,
       collect(DISTINCT ncit_term.origin_id)[0] AS ncit_oid,
       collect(DISTINCT syn.value) + [x IN collect(DISTINCT ncit_term.value) WHERE x IS NOT NULL] AS syn_vals
     // Format the PVs with their synonyms and NCIt codes
-    WITH n0, value_set_url,
+    WITH n0,
       CASE WHEN pv_val IS NULL THEN [] ELSE collect({{value: pv_val, synonyms: syn_vals, ncit_concept_code: ncit_oid}}) END AS permissibleValues
     WITH n0, permissibleValues AS all_pvs
     // Return the CDE information with pagination support
@@ -224,35 +274,18 @@ async def cde_pvs_by_id_with_version_get(
       END AS permissibleValues
     RETURN distinct CDECode, CDEVersion, CDEFullName, permissibleValues"""
 
-    def get_edp_properties():
-        try:
-            return edp_properties_get(request, "caDSR", id, version)
-        except HTTPException as exc:
-            # Not every CDE is an EDP. Preserve this endpoint's existing 200
-            # response while the standalone EDP endpoint continues to return 404.
-            if exc.status_code == 404:
-                return []
-            raise
-
-    ret, models = await asyncio.gather(
-        asyncio.to_thread(
-            request.state.mdb.get_with_statement,
-            stmt,
-            {
-                "p0": id,
-                "p1": version,
-                "p2": request.state.skip,
-                "p3": request.state.limit,
-            },
-            raise_on_empty=False,
-        ),
-        asyncio.to_thread(get_edp_properties),
+    ret = request.state.mdb.get_with_statement(
+        stmt,
+        {
+            "p0": id,
+            "p1": version,
+            "p2": request.state.skip,
+            "p3": request.state.limit,
+        },
+        raise_on_empty=False,
     )
 
     return [
-        {
-            **(record.data() if hasattr(record, "data") else dict(record.items())),
-            "models": models,
-        }
+        record.data() if hasattr(record, "data") else dict(record.items())
         for record in ret
     ]
