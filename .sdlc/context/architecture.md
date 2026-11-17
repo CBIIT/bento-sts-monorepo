@@ -99,3 +99,24 @@ Select work by required inputs and affected layers. Backend and frontend tasks m
 Use an independent context for implementation review.
 
 Use the [shared task workflow](../tasks/workflow.md) with the selected work's plan for inputs, applicable gates, and handoffs.
+
+## Browse Models existing-API integration (2026-11-17)
+
+The frontend fetches the complete `GET /v2/models/?include_counts=true` array.
+The existing model-list router uses one batched Neo4j statement to read model
+metadata and independently grouped entity counts. Its default request still uses
+the original query and Model schema; no count field or aggregation cost is added.
+`ModelWithCounts` extends Model only for the opt-in response.
+
+`frontend/src/api/client.ts` adapts the inventory into cards, selects the current
+version, applies name search/manual selection, sorts, computes filtered totals,
+and then paginates. TanStack Query caches inventory separately from UI controls
+with a 60-second stale time. The backend retains its existing configurable process
+TTL (default 28,800 seconds; local preview uses 60). Separate query strings keep
+legacy and aggregate snapshots in separate cache entries. This is not a shared
+multi-worker cache or an immediate ingestion-invalidation mechanism.
+
+Model detail continues to use the existing model/version node route after checking
+existence and counts in the inventory. No database schema migration is required.
+The dedicated model-card route and generated schema have been retired; repository
+clients, QA scripts and CI now use the extended existing API.

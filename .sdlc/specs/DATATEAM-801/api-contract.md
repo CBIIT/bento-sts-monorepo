@@ -1,6 +1,6 @@
 # DATATEAM-801 API contract
 
-Status: approved requirement direction, 2026-11-17; implementation migration NOT STARTED. The user selected extension of existing APIs instead of a separate model-card endpoint. This document supersedes the former `/v2/model-cards` target contract. The running application still uses that endpoint until migration is implemented and verified.
+Status: implemented on 2026-11-17. Browse Models uses the existing `/v2/models/?include_counts=true` list; the separate model-card route has been removed. Migration validation and remaining limits are recorded in `../../verification/DATATEAM-801/evidence/20261117-existing-api-migration/`.
 
 ## Approved interface
 
@@ -127,7 +127,7 @@ The observed graph uses `(relationship)-[:has_src]->(node)`, `(relationship)-[:h
 
 | Existing endpoint or schema | Available behavior | Gap for Browse Models |
 | --- | --- | --- |
-| `GET /v2/models/` | All model records with skip/limit; sorted by name and ascending version | No card aggregates; current selection, filters and sort will move to the frontend under the revised contract |
+| `GET /v2/models/` | All model records with skip/limit; sorted by name and ascending version | Opt-in aggregate counts implemented; current selection, filters and sort are derived in the frontend |
 | `GET /v2/models/count` | Counts model nodes | Not the distinct-model primary count required by 801 |
 | `GET /v2/model/{modelHandle}/versions` | Model versions | Useful for detail navigation, not a complete card response |
 | `GET /v2/model/{modelHandle}/latest-version` | Marked latest selection with ordering fallback | Avoid one frontend request per model; validate policy and identity |

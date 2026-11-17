@@ -88,7 +88,7 @@ Complete individual task rows against their criteria and applicable checks. Comp
 
 The user requested revising the requirement to reuse existing backend APIs. Extend `/v2/models/` using `include_counts=true` for model/version node/property/relationship counts. Preserve the default response, ordering, paging, count meaning and legacy errors. Keep existing detail routes. Do not introduce another public endpoint for this feature.
 
-The frontend owns current-version selection, search, model filters, sorting, distinct totals and UI pagination over the full inventory. Preserve all previously approved behavior and data policies. Remove `/v2/model-cards` only after consumer migration and compatibility/E2E verification. The running implementation has not yet been migrated.
+The frontend owns current-version selection, search, model filters, sorting, distinct totals and UI pagination over the full inventory. Preserve all previously approved behavior and data policies. Remove `/v2/model-cards` only after consumer migration and compatibility/E2E verification. The implementation now uses the extended existing model-list route; migration evidence is stored under `.sdlc/verification/DATATEAM-801/evidence/20261117-existing-api-migration/`.
 
 | ID | Additional acceptance criterion |
 | --- | --- |

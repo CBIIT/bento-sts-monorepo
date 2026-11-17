@@ -1,6 +1,6 @@
 # Browse Models task plan
 
-Requested mode: plan. Source issue: [DATATEAM-801](https://tracker.nci.nih.gov/browse/DATATEAM-801).
+Requested mode: implementation. Source issue: [DATATEAM-801](https://tracker.nci.nih.gov/browse/DATATEAM-801).
 
 Objective: define and deliver the Browse Models landing page using the existing STS backend and the agreed frontend stack. Use the [coordinator](../../prompts/coordinator.md) and [shared workflow](../workflow.md); select individual task rows according to the request and available inputs.
 
@@ -9,7 +9,7 @@ Objective: define and deliver the Browse Models landing page using the existing 
 | Input | Location |
 | --- | --- |
 | Spec | [Browse Models specification](../../specs/DATATEAM-801/spec.md) |
-| Contract | [Model cards API proposal](../../specs/DATATEAM-801/api-contract.md) |
+| Contract | [Existing model-list API contract](../../specs/DATATEAM-801/api-contract.md) |
 | Architecture | [Shared architecture](../../context/architecture.md) |
 | Design | [Design intake](../../design/2026-11-12/design.md) |
 | Scope | [File manifest](file-manifest.md) |
@@ -51,15 +51,15 @@ Issue references in the spec identify requirement sources. They do not impose ti
 
 ## Current selection Existing API migration
 
-Scope authority: user request on 2026-11-17 to revise the requirement. This document update does not authorize starting code changes in this turn. Previous task statuses describe the prior model-cards implementation, not completion of this migration.
+Scope authority: user follow-up on 2026-11-17 explicitly requested code changes after the requirement revision. Previous task statuses describe the prior model-cards implementation, not completion of this migration.
 
 | Work | Owner | Required output | Status |
 | --- | --- | --- | --- |
 | Revise spec and contract | Coordinator | AC-14/15/16 and opt-in existing-list contract | Documented |
-| Capture legacy baseline and consumer inventory | API/integration | Default response/order/paging/error baseline and model-cards references | Pending |
-| Extend existing list | Backend/API | `/v2/models/?include_counts=true`; batched accurate counts; default compatibility | Pending |
-| Migrate frontend adapter | UI data | Full-inventory client derivation and regenerated types | Pending |
-| Migrate consumers and remove redundant route | API/integration | QA/CI/client migration and verified endpoint retirement | Pending |
-| Revalidate and review | QA/Critic | Compatibility, real DB/HTTP, browser flows and independent review | Not run |
+| Capture legacy baseline and consumer inventory | API/integration | Default response/order/paging/error baseline and model-cards references | Complete; see migration evidence |
+| Extend existing list | Backend/API | `/v2/models/?include_counts=true`; batched accurate counts; default compatibility | Complete; see migration evidence |
+| Migrate frontend adapter | UI data | Full-inventory client derivation and regenerated types | Complete; see migration evidence |
+| Migrate consumers and remove redundant route | API/integration | QA/CI/client migration and verified endpoint retirement | Complete; see migration evidence |
+| Revalidate and review | QA/Critic | Compatibility, real DB/HTTP, browser flows and independent review | Compatibility, real DB/HTTP, static/build and browser checks passed; independent review not run |
 
 No new graph, PDF, term search or comparison work is introduced by this migration.

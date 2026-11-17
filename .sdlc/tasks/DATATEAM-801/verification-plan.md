@@ -84,7 +84,7 @@ Task completion follows its selected criteria and gates. Full-feature completion
 
 ## Existing API migration verification
 
-Status: planned, NOT RUN. Previous model-cards and frontend test results do not establish migration correctness.
+Status: implementation checks passed (13 backend, 19 frontend unit/component, 15 isolated browser and 3 live read-only browser tests). Independent review not run. Fresh results are recorded in `../../verification/DATATEAM-801/evidence/20261117-existing-api-migration/`; previous results do not establish migration correctness.
 
 | Boundary | Required checks |
 | --- | --- |
