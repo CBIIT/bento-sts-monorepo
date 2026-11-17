@@ -1,0 +1,2527 @@
+{
+  "components": {
+    "schemas": {
+      "CDEPermissibleValues": {
+        "properties": {
+          "CDECode": {
+            "title": "Cdecode",
+            "type": "string"
+          },
+          "CDEFullName": {
+            "title": "Cdefullname",
+            "type": "string"
+          },
+          "CDEVersion": {
+            "title": "Cdeversion",
+            "type": "string"
+          },
+          "permissibleValues": {
+            "items": {
+              "$ref": "#/components/schemas/PermissibleValue"
+            },
+            "title": "Permissiblevalues",
+            "type": "array"
+          }
+        },
+        "required": [
+          "CDECode",
+          "CDEFullName",
+          "CDEVersion",
+          "permissibleValues"
+        ],
+        "title": "CDEPermissibleValues",
+        "type": "object"
+      },
+      "CDEPermissibleValuesModel": {
+        "properties": {
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "permissibleValues": {
+            "items": {
+              "$ref": "#/components/schemas/PermissibleValue"
+            },
+            "title": "Permissiblevalues",
+            "type": "array"
+          },
+          "property": {
+            "title": "Property",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "model",
+          "property",
+          "version",
+          "permissibleValues"
+        ],
+        "title": "CDEPermissibleValuesModel",
+        "type": "object"
+      },
+      "CardCounts": {
+        "properties": {
+          "nodes": {
+            "minimum": 0,
+            "title": "Nodes",
+            "type": "integer"
+          },
+          "properties": {
+            "minimum": 0,
+            "title": "Properties",
+            "type": "integer"
+          },
+          "relationships": {
+            "minimum": 0,
+            "title": "Relationships",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "nodes",
+          "properties",
+          "relationships"
+        ],
+        "title": "CardCounts",
+        "type": "object"
+      },
+      "Concept": {
+        "properties": {
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handle"
+          },
+          "nanoid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nanoid"
+          },
+          "type": {
+            "const": "Concept",
+            "default": "Concept",
+            "title": "Type",
+            "type": "string"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "title": "Concept",
+        "type": "object"
+      },
+      "Model": {
+        "properties": {
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handle"
+          },
+          "is_latest_version": {
+            "title": "Is Latest Version",
+            "type": "boolean"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "nanoid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nanoid"
+          },
+          "repository": {
+            "anyOf": [
+              {
+                "format": "uri",
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Repository"
+          },
+          "type": {
+            "const": "Model",
+            "default": "Model",
+            "title": "Type",
+            "type": "string"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "is_latest_version"
+        ],
+        "title": "Model",
+        "type": "object"
+      },
+      "ModelWithCounts": {
+        "properties": {
+          "counts": {
+            "$ref": "#/components/schemas/CardCounts"
+          },
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handle"
+          },
+          "is_latest_version": {
+            "title": "Is Latest Version",
+            "type": "boolean"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "nanoid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nanoid"
+          },
+          "repository": {
+            "anyOf": [
+              {
+                "format": "uri",
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Repository"
+          },
+          "type": {
+            "const": "Model",
+            "default": "Model",
+            "title": "Type",
+            "type": "string"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "is_latest_version",
+          "counts"
+        ],
+        "title": "ModelWithCounts",
+        "type": "object"
+      },
+      "Node": {
+        "properties": {
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handle"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "nanoid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nanoid"
+          },
+          "type": {
+            "const": "Node",
+            "default": "Node",
+            "title": "Type",
+            "type": "string"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "model"
+        ],
+        "title": "Node",
+        "type": "object"
+      },
+      "Origin": {
+        "properties": {
+          "desc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Desc"
+          },
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handle"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "nanoid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nanoid"
+          },
+          "type": {
+            "const": "Origin",
+            "default": "Origin",
+            "title": "Type",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "Origin",
+        "type": "object"
+      },
+      "PermissibleValue": {
+        "properties": {
+          "ncit_concept_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ncit Concept Code"
+          },
+          "synonyms": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Synonyms"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "title": "PermissibleValue",
+        "type": "object"
+      },
+      "Property": {
+        "properties": {
+          "desc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Desc"
+          },
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handle"
+          },
+          "is_key": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Key"
+          },
+          "is_nullable": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Nullable"
+          },
+          "is_required": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Required"
+          },
+          "is_strict": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Strict"
+          },
+          "item_domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Item Domain"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "nanoid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nanoid"
+          },
+          "pattern": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pattern"
+          },
+          "type": {
+            "const": "Property",
+            "default": "Property",
+            "title": "Type",
+            "type": "string"
+          },
+          "units": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Units"
+          },
+          "value_domain": {
+            "title": "Value Domain",
+            "type": "string"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "model",
+          "value_domain"
+        ],
+        "title": "Property",
+        "type": "object"
+      },
+      "PropertyResponse": {
+        "description": "Response model for /node/{nodeHandle}/properties endpoint",
+        "properties": {
+          "desc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Desc"
+          },
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handle"
+          },
+          "is_key": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Key"
+          },
+          "is_nullable": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Nullable"
+          },
+          "is_required": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Required"
+          },
+          "is_strict": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Strict"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "nanoid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nanoid"
+          },
+          "type": {
+            "const": "Property",
+            "default": "Property",
+            "title": "Type",
+            "type": "string"
+          },
+          "value_domain": {
+            "title": "Value Domain",
+            "type": "string"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "model",
+          "value_domain"
+        ],
+        "title": "PropertyResponse",
+        "type": "object"
+      },
+      "Relationship": {
+        "properties": {
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handle"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "nanoid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nanoid"
+          },
+          "type": {
+            "const": "Relationship",
+            "default": "Relationship",
+            "title": "Type",
+            "type": "string"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "model"
+        ],
+        "title": "Relationship",
+        "type": "object"
+      },
+      "Tag": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "nanoid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nanoid"
+          },
+          "type": {
+            "const": "Tag",
+            "default": "Tag",
+            "title": "Type",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ],
+        "title": "Tag",
+        "type": "object"
+      },
+      "Term": {
+        "properties": {
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handle"
+          },
+          "nanoid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nanoid"
+          },
+          "origin_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origin Id"
+          },
+          "origin_name": {
+            "title": "Origin Name",
+            "type": "string"
+          },
+          "origin_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origin Version"
+          },
+          "type": {
+            "const": "Term",
+            "default": "Term",
+            "title": "Type",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "origin_name"
+        ],
+        "title": "Term",
+        "type": "object"
+      },
+      "ValueSet": {
+        "properties": {
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handle"
+          },
+          "nanoid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nanoid"
+          },
+          "type": {
+            "const": "ValueSet",
+            "default": "ValueSet",
+            "title": "Type",
+            "type": "string"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "title": "ValueSet",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "\nThe Simple Terminology Server (STS) exposes elements of data models in\nan intuitive, consistent way. Data models expressed in the form of a\n[property graph](https://en.wikipedia.org/wiki/Graph_database#Labeled-property_graph)\n-- i.e., as nodes, relationships, properties, and terms -- can be explored and\nqueried via this interface. Data models are stored in an instance of a\n[Metamodel Database (MDB)](https://github.com/CBIIT/bento-meta) backed by a\n[Neo4j](https://neo4j.com) server.",
+    "title": "Simple Terminology Server",
+    "version": "2.5.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/v2/admin/cache/clear": {
+      "get": {
+        "description": "Invalidate all cached Neo4j query results immediately.\n\nCall this after a daily MDB data update to ensure subsequent requests\nreflect the latest data rather than serving stale cached results.",
+        "operationId": "cache_clear_v2_admin_cache_clear_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Cache cleared successfully."
+          }
+        },
+        "summary": "Clear the in-process query cache.",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v2/edp/{originName}/{originId}/{originVersion}/terms": {
+      "get": {
+        "operationId": "edp_pvs_by_origin_id_version_get_v2_edp__originName___originId___originVersion__terms_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "originName",
+            "required": true,
+            "schema": {
+              "title": "Originname",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "originId",
+            "required": true,
+            "schema": {
+              "title": "Originid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "originVersion",
+            "required": true,
+            "schema": {
+              "title": "Originversion",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Term"
+                  },
+                  "title": "Response Edp Pvs By Origin Id Version Get V2 Edp  Originname   Originid   Originversion  Terms Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "422": {
+            "description": "Bad parameters (origin, id, version, skip, or limit?)"
+          }
+        },
+        "summary": "Get PV terms for a given EDP origin, id and version.",
+        "tags": [
+          "edp"
+        ]
+      }
+    },
+    "/v2/edps/{originName}": {
+      "get": {
+        "operationId": "edp_terms_get_v2_edps__originName__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "originName",
+            "required": true,
+            "schema": {
+              "title": "Originname",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Term"
+                  },
+                  "title": "Response Edp Terms Get V2 Edps  Originname  Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "422": {
+            "description": "Bad parameters (skip or limit?)"
+          }
+        },
+        "summary": "Get all extended definition property (EDP) defining terms, filtered by the origin (authority) of the terms (e.g., 'caDSR' for CDEs)",
+        "tags": [
+          "edps"
+        ]
+      }
+    },
+    "/v2/edps/{originName}/{originId}/{originVersion}/properties": {
+      "get": {
+        "operationId": "edp_properties_get_v2_edps__originName___originId___originVersion__properties_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "originName",
+            "required": true,
+            "schema": {
+              "title": "Originname",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "originId",
+            "required": true,
+            "schema": {
+              "title": "Originid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "originVersion",
+            "required": true,
+            "schema": {
+              "title": "Originversion",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Property"
+                  },
+                  "title": "Response Edp Properties Get V2 Edps  Originname   Originid   Originversion  Properties Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "422": {
+            "description": "Bad parameters (origin, id, version, skip, or limit?)"
+          }
+        },
+        "summary": "Get model properties that use a given EDP as their permissible value list source.",
+        "tags": [
+          "edps"
+        ]
+      }
+    },
+    "/v2/id/{id}": {
+      "get": {
+        "operationId": "id_id_get_v2_id__id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Model"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Node"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Property"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Relationship"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Concept"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ValueSet"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Origin"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Tag"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Term"
+                    }
+                  ],
+                  "title": "Response Id Id Get V2 Id  Id  Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "422": {
+            "description": "Bad parameters (id?)"
+          }
+        },
+        "summary": "Get MDB entity with specified nanoid",
+        "tags": [
+          "id"
+        ]
+      }
+    },
+    "/v2/model/{modelHandle}/latest-version": {
+      "get": {
+        "operationId": "model_model_latest_version_get_v2_model__modelHandle__latest_version_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "modelHandle",
+            "required": true,
+            "schema": {
+              "title": "Modelhandle",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Model"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "422": {
+            "description": "Bad parameters (modelHandle or skip or limit?)"
+          }
+        },
+        "summary": "Get latest version of specified model",
+        "tags": [
+          "model"
+        ]
+      }
+    },
+    "/v2/model/{modelHandle}/version/{versionString}/node/{nodeHandle}": {
+      "get": {
+        "operationId": "model_model_handle_node_node_handle_get_v2_model__modelHandle__version__versionString__node__nodeHandle__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "modelHandle",
+            "required": true,
+            "schema": {
+              "title": "Modelhandle",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "versionString",
+            "required": true,
+            "schema": {
+              "title": "Versionstring",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "nodeHandle",
+            "required": true,
+            "schema": {
+              "title": "Nodehandle",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Node"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "422": {
+            "description": "Bad parameters (modelHandle or versionString or nodeHandle?)"
+          }
+        },
+        "summary": "Retrieve a specified node from a model",
+        "tags": [
+          "model"
+        ]
+      }
+    },
+    "/v2/model/{modelHandle}/version/{versionString}/node/{nodeHandle}/properties": {
+      "get": {
+        "operationId": "model_model_handle_node_node_handle_properties_get_v2_model__modelHandle__version__versionString__node__nodeHandle__properties_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "modelHandle",
+            "required": true,
+            "schema": {
+              "title": "Modelhandle",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "versionString",
+            "required": true,
+            "schema": {
+              "title": "Versionstring",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "nodeHandle",
+            "required": true,
+            "schema": {
+              "title": "Nodehandle",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PropertyResponse"
+                  },
+                  "title": "Response Model Model Handle Node Node Handle Properties Get V2 Model  Modelhandle  Version  Versionstring  Node  Nodehandle  Properties Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "422": {
+            "description": "Bad parameters (modelHandle or versionString or nodeHandle or skip or limit?)"
+          }
+        },
+        "summary": "Get all properties for specified node",
+        "tags": [
+          "model"
+        ]
+      }
+    },
+    "/v2/model/{modelHandle}/version/{versionString}/node/{nodeHandle}/properties/count": {
+      "get": {
+        "operationId": "model_model_handle_node_node_handle_properties_count_get_v2_model__modelHandle__version__versionString__node__nodeHandle__properties_count_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "modelHandle",
+            "required": true,
+            "schema": {
+              "title": "Modelhandle",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "versionString",
+            "required": true,
+            "schema": {
+              "title": "Versionstring",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "nodeHandle",
+            "required": true,
+            "schema": {
+              "title": "Nodehandle",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Model Model Handle Node Node Handle Properties Count Get V2 Model  Modelhandle  Version  Versionstring  Node  Nodehandle  Properties Count Get",
+                  "type": "integer"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Bad parameters (modelHandle or versionString or nodeHandle?)"
+          }
+        },
+        "summary": "Get number of properties for specified node",
+        "tags": [
+          "model"
+        ]
+      }
+    },
+    "/v2/model/{modelHandle}/version/{versionString}/node/{nodeHandle}/property/{propHandle}": {
+      "get": {
+        "operationId": "model_model_handle_node_node_handle_property_prop_handle_get_v2_model__modelHandle__version__versionString__node__nodeHandle__property__propHandle__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "modelHandle",
+            "required": true,
+            "schema": {
+              "title": "Modelhandle",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "versionString",
+            "required": true,
+            "schema": {
+              "title": "Versionstring",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "nodeHandle",
+            "required": true,
+            "schema": {
+              "title": "Nodehandle",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "propHandle",
+            "required": true,
+            "schema": {
+              "title": "Prophandle",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PropertyResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "422": {
+            "description": "Bad parameters (modelHandle or versionString or nodeHandle or propHandle?)"
+          }
+        },
+        "summary": "Retrieve a specified property from a model",
+        "tags": [
+          "model"
+        ]
+      }
+    },
+    "/v2/model/{modelHandle}/version/{versionString}/node/{nodeHandle}/property/{propHandle}/term/{termValue}": {
+      "get": {
+        "operationId": "model_model_handle_node_node_handle_property_prop_handle_term_term_value_get_v2_model__modelHandle__version__versionString__node__nodeHandle__property__propHandle__term__termValue__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "modelHandle",
+            "required": true,
+            "schema": {
+              "title": "Modelhandle",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "versionString",
+            "required": true,
+            "schema": {
+              "title": "Versionstring",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "nodeHandle",
+            "required": true,
+            "schema": {
+              "title": "Nodehandle",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "propHandle",
+            "required": true,
+            "schema": {
+              "title": "Prophandle",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "termValue",
+            "required": true,
+            "schema": {
+              "title": "Termvalue",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Term"
+                  },
+                  "title": "Response Model Model Handle Node Node Handle Property Prop Handle Term Term Value Get V2 Model  Modelhandle  Version  Versionstring  Node  Nodehandle  Property  Prophandle  Term  Termvalue  Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "422": {
+            "description": "Bad parameters (modelHandle or versionString or nodeHandle or propHandle or termValue?)"
+          }
+        },
+        "summary": "Get a specific term value for specified property",
+        "tags": [
+          "model"
+        ]
+      }
+    },
+    "/v2/model/{modelHandle}/version/{versionString}/node/{nodeHandle}/property/{propHandle}/terms": {
+      "get": {
+        "operationId": "model_model_handle_node_node_handle_property_prop_handle_terms_get_v2_model__modelHandle__version__versionString__node__nodeHandle__property__propHandle__terms_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "modelHandle",
+            "required": true,
+            "schema": {
+              "title": "Modelhandle",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "versionString",
+            "required": true,
+            "schema": {
+              "title": "Versionstring",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "nodeHandle",
+            "required": true,
+            "schema": {
+              "title": "Nodehandle",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "propHandle",
+            "required": true,
+            "schema": {
+              "title": "Prophandle",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Term"
+                  },
+                  "title": "Response Model Model Handle Node Node Handle Property Prop Handle Terms Get V2 Model  Modelhandle  Version  Versionstring  Node  Nodehandle  Property  Prophandle  Terms Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "no_value_set": {
+                    "summary": "Property exists but has no value set",
+                    "value": {
+                      "detail": "Property exists, but does not use an acceptable value set."
+                    }
+                  },
+                  "not_found": {
+                    "summary": "Not found",
+                    "value": {
+                      "detail": "Not found."
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Property not found or has no value set"
+          },
+          "422": {
+            "description": "Bad parameters (modelHandle or versionString or nodeHandle or propHandle or skip or limit?)"
+          }
+        },
+        "summary": "Get the terms (acceptable values) for specified property, if applicable to property.",
+        "tags": [
+          "model"
+        ]
+      }
+    },
+    "/v2/model/{modelHandle}/version/{versionString}/node/{nodeHandle}/property/{propHandle}/terms/count": {
+      "get": {
+        "operationId": "model_model_handle_node_node_handle_property_prop_handle_terms_count_get_v2_model__modelHandle__version__versionString__node__nodeHandle__property__propHandle__terms_count_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "modelHandle",
+            "required": true,
+            "schema": {
+              "title": "Modelhandle",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "versionString",
+            "required": true,
+            "schema": {
+              "title": "Versionstring",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "nodeHandle",
+            "required": true,
+            "schema": {
+              "title": "Nodehandle",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "propHandle",
+            "required": true,
+            "schema": {
+              "title": "Prophandle",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Model Model Handle Node Node Handle Property Prop Handle Terms Count Get V2 Model  Modelhandle  Version  Versionstring  Node  Nodehandle  Property  Prophandle  Terms Count Get",
+                  "type": "integer"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Property exists, but does not use an acceptable value set."
+          },
+          "422": {
+            "description": "Bad parameters (modelHandle or versionString or nodeHandle or propHandle?)"
+          }
+        },
+        "summary": "Get number of terms for specified property",
+        "tags": [
+          "model"
+        ]
+      }
+    },
+    "/v2/model/{modelHandle}/version/{versionString}/nodes": {
+      "get": {
+        "operationId": "model_model_handle_nodes_get_v2_model__modelHandle__version__versionString__nodes_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "modelHandle",
+            "required": true,
+            "schema": {
+              "title": "Modelhandle",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "versionString",
+            "required": true,
+            "schema": {
+              "title": "Versionstring",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Node"
+                  },
+                  "title": "Response Model Model Handle Nodes Get V2 Model  Modelhandle  Version  Versionstring  Nodes Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "422": {
+            "description": "Bad parameters (modelHandle or versionString or skip or limit?)"
+          }
+        },
+        "summary": "Get all nodes for specified model",
+        "tags": [
+          "model"
+        ]
+      }
+    },
+    "/v2/model/{modelHandle}/version/{versionString}/nodes/count": {
+      "get": {
+        "operationId": "model_model_handle_nodes_count_get_v2_model__modelHandle__version__versionString__nodes_count_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "modelHandle",
+            "required": true,
+            "schema": {
+              "title": "Modelhandle",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "versionString",
+            "required": true,
+            "schema": {
+              "title": "Versionstring",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Model Model Handle Nodes Count Get V2 Model  Modelhandle  Version  Versionstring  Nodes Count Get",
+                  "type": "integer"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Bad parameters (modelHandle or versionString?)"
+          }
+        },
+        "summary": "Get number of nodes for specified model",
+        "tags": [
+          "model"
+        ]
+      }
+    },
+    "/v2/model/{modelHandle}/versions": {
+      "get": {
+        "operationId": "model_model_versions_get_v2_model__modelHandle__versions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "modelHandle",
+            "required": true,
+            "schema": {
+              "title": "Modelhandle",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Response Model Model Versions Get V2 Model  Modelhandle  Versions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "422": {
+            "description": "Bad parameters (modelHandle or skip or limit?)"
+          }
+        },
+        "summary": "Get all versions for specified model",
+        "tags": [
+          "model"
+        ]
+      }
+    },
+    "/v2/models/": {
+      "get": {
+        "operationId": "models_get_v2_models__get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "include_counts",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Counts",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/components/schemas/ModelWithCounts"
+                      },
+                      {
+                        "$ref": "#/components/schemas/Model"
+                      }
+                    ]
+                  },
+                  "title": "Response Models Get V2 Models  Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "422": {
+            "description": "Bad parameters (skip or limit?)"
+          },
+          "503": {
+            "description": "Model inventory unavailable (include_counts only)."
+          }
+        },
+        "summary": "Get info on available models",
+        "tags": [
+          "models"
+        ]
+      }
+    },
+    "/v2/models/count": {
+      "get": {
+        "operationId": "models_count_get_v2_models_count_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Models Count Get V2 Models Count Get",
+                  "type": "integer"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get number of available models",
+        "tags": [
+          "models"
+        ]
+      }
+    },
+    "/v2/tag/{key}/values": {
+      "get": {
+        "operationId": "tag_key_values_get_v2_tag__key__values_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "title": "Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Response Tag Key Values Get V2 Tag  Key  Values Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "422": {
+            "description": "Bad parameters (key or skip or limit?)"
+          }
+        },
+        "summary": "Get list of tag values having specified tag key",
+        "tags": [
+          "tag"
+        ]
+      }
+    },
+    "/v2/tag/{key}/{value}/entities": {
+      "get": {
+        "operationId": "tag_key_value_entities_get_v2_tag__key___value__entities_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "title": "Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "value",
+            "required": true,
+            "schema": {
+              "title": "Value",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/components/schemas/Node"
+                      },
+                      {
+                        "$ref": "#/components/schemas/Property"
+                      },
+                      {
+                        "$ref": "#/components/schemas/Relationship"
+                      },
+                      {
+                        "$ref": "#/components/schemas/Term"
+                      },
+                      {
+                        "$ref": "#/components/schemas/Concept"
+                      }
+                    ]
+                  },
+                  "title": "Response Tag Key Value Entities Get V2 Tag  Key   Value  Entities Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "422": {
+            "description": "Bad parameters (key or value or skip or limit?)"
+          }
+        },
+        "summary": "Get list of entities tagged by key:value",
+        "tags": [
+          "tag"
+        ]
+      }
+    },
+    "/v2/tag/{key}/{value}/entities/count": {
+      "get": {
+        "operationId": "tag_key_value_entities_count_get_v2_tag__key___value__entities_count_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "title": "Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "value",
+            "required": true,
+            "schema": {
+              "title": "Value",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Tag Key Value Entities Count Get V2 Tag  Key   Value  Entities Count Get",
+                  "type": "integer"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Bad parameters (key or value?)"
+          }
+        },
+        "summary": "Get number of entities tagged by key:value",
+        "tags": [
+          "tag"
+        ]
+      }
+    },
+    "/v2/tags/": {
+      "get": {
+        "operationId": "tags_get_v2_tags__get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "minimum": 0,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Tag"
+                  },
+                  "title": "Response Tags Get V2 Tags  Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "422": {
+            "description": "Bad parameters (skip or limit?)"
+          }
+        },
+        "summary": "Get all tag nodes in MDB",
+        "tags": [
+          "tags"
+        ]
+      }
+    },
+    "/v2/tags/count": {
+      "get": {
+        "operationId": "tags_count_get_v2_tags_count_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Tags Count Get V2 Tags Count Get",
+                  "type": "integer"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get number of tags present in MDB",
+        "tags": [
+          "tags"
+        ]
+      }
+    },
+    "/v2/terms/cde-pvs/{id}/{version}/pvs": {
+      "get": {
+        "operationId": "cde_pvs_by_id_with_version_get_v2_terms_cde_pvs__id___version__pvs_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "title": "Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "title": "Version",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "use_null_cde",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Use Null Cde",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CDEPermissibleValues"
+                  },
+                  "title": "Response Cde Pvs By Id With Version Get V2 Terms Cde Pvs  Id   Version  Pvs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "422": {
+            "description": "Bad parameters (id or version or skip or limit?)"
+          }
+        },
+        "summary": "Get PVs for a given CDE id and version.",
+        "tags": [
+          "terms"
+        ]
+      }
+    },
+    "/v2/terms/model-pvs/{model}/{property}": {
+      "get": {
+        "operationId": "pvs_synonyms_model_version_get_v2_terms_model_pvs__model___property__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "model",
+            "required": true,
+            "schema": {
+              "title": "Model",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "property",
+            "required": true,
+            "schema": {
+              "title": "Property",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Version"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CDEPermissibleValuesModel"
+                  },
+                  "title": "Response Pvs Synonyms Model Version Get V2 Terms Model Pvs  Model   Property  Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "422": {
+            "description": "Bad parameters (model or property or version or skip or limit?)"
+          }
+        },
+        "summary": "Get Permissible Values and Synonyms for a model, optionally filtered by property and version.",
+        "tags": [
+          "terms"
+        ]
+      }
+    }
+  }
+}

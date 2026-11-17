@@ -4,6 +4,7 @@ from functools import cmp_to_key
 from ..dependencies import paging_params
 from ..converters import neo_to_py
 from ..pymodels import Model
+from ..catalog import ModelWithCounts, get_models_with_counts
 from ..utility.version_utils import model_version_compare
 
 router = APIRouter(
@@ -19,18 +20,25 @@ router = APIRouter(
     responses={
         200: {"description": "Successful Response"},
         404: {"description": "Not found."},
+        503: {"description": "Model inventory unavailable (include_counts only)."},
         422: {"description": "Bad parameters (skip or limit?)"},
     },
 )
-def models_get(request: Request) -> List[Model]:
-    rows = request.state.mdb.get_with_statement(
-        'MATCH (n0:model) RETURN n0 as model',
-        {}
-    )
-    sorted_models = sorted(
-        (neo_to_py(row['model']) for row in rows),
-        key=cmp_to_key(model_version_compare)
-    )
+def models_get(request: Request, include_counts: bool = False) -> List[ModelWithCounts | Model]:
+    if include_counts:
+        try:
+            inventory = get_models_with_counts(request.state.mdb)
+            sorted_models = sorted(inventory, key=cmp_to_key(model_version_compare))
+        except Exception:
+            raise HTTPException(status_code=503, detail="The model inventory is temporarily unavailable.") from None
+    else:
+        rows = request.state.mdb.get_with_statement(
+            'MATCH (n0:model) RETURN n0 as model', {}
+        )
+        sorted_models = sorted(
+            (neo_to_py(row['model']) for row in rows),
+            key=cmp_to_key(model_version_compare)
+        )
 
     skip = request.state.skip or 0
     limit = request.state.limit

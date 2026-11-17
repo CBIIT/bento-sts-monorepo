@@ -1,0 +1,40 @@
+name: mdb-browse-qa
+services:
+  neo4j:
+    image: neo4j:5.26.27-community
+    labels:
+      org.mdb.purpose: isolated-browse-models-qa
+    environment:
+      NEO4J_AUTH: neo4j/mdb-local-qa-only
+      NEO4J_server_memory_heap_initial__size: 256m
+      NEO4J_server_memory_heap_max__size: 512m
+      NEO4J_server_memory_pagecache_size: 128m
+    ports:
+      - '127.0.0.1:27687:7687'
+      - '127.0.0.1:27474:7474'
+    healthcheck:
+      test: ['CMD', 'cypher-shell', '-u', 'neo4j', '-p', 'mdb-local-qa-only', 'RETURN 1']
+      interval: 5s
+      timeout: 10s
+      retries: 24
+    # Deliberately no host or shared volume: only disposable QA data.
+  api:
+    build:
+      context: ../../backend
+    environment:
+      NEO4J_MDB_URI: bolt://neo4j:7687
+      NEO4J_MDB_USER: neo4j
+      NEO4J_MDB_PASS: mdb-local-qa-only
+      STS_CACHE_TTL: '1'
+    ports:
+      - '127.0.0.1:28000:8000'
+    depends_on:
+      neo4j:
+        condition: service_healthy
+  ui:
+    build:
+      context: ../../frontend
+    ports:
+      - '127.0.0.1:28080:8080'
+    depends_on:
+      - api

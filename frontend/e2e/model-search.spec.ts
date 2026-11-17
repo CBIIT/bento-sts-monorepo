@@ -1,0 +1,31 @@
+import { test, expect } from '@playwright/test';
+
+test('Browse Models searches cards, preserves state and clears no-match results', async ({ page }) => {
+  const model = process.env.QA_SEARCH_MODEL ?? 'A';
+  await page.goto('/#/');
+  await expect(page.getByRole('article').first()).toBeVisible();
+  const search = page.getByRole('searchbox', { name: 'Find models' });
+  await search.fill(model.toLowerCase());
+  await expect(page.getByRole('article')).toHaveCount(1);
+  await expect(page.getByRole('article')).toHaveAttribute('aria-label', new RegExp(`^${model} version`));
+  await expect(page.locator('.result-summary')).toHaveText('1 models');
+  await page.reload();
+  await expect(search).toHaveValue(model.toLowerCase());
+  await expect(page.getByRole('article')).toHaveCount(1);
+  await page.getByRole('article').getByRole('link', { name: 'View Details' }).click();
+  await expect(page.getByRole('heading', { name: 'Model nodes' })).toBeVisible();
+  await page.getByRole('navigation', { name: 'Model detail navigation' }).getByRole('link', { name: 'Browse Models' }).click();
+  await expect(search).toHaveValue(model.toLowerCase());
+  await expect(page.getByRole('article')).toHaveCount(1);
+  await page.getByRole('checkbox', { name: 'Include all versions' }).check();
+  await expect(page.getByRole('article').first()).toBeVisible();
+  await expect.poll(() => page.getByRole('article').count()).toBeGreaterThan(1);
+  const labels = await page.getByRole('article').evaluateAll(elements => elements.map(el => el.getAttribute('aria-label')));
+  expect(labels.every(label => label?.startsWith(`${model} version`))).toBe(true);
+  await search.fill('no-such-model-qa-7239');
+  await expect(page.getByRole('heading', { name: 'No models to display' })).toBeVisible();
+  await expect(page.getByRole('article')).toHaveCount(0);
+  await search.fill('');
+  await expect.poll(() => page.getByRole('article').count()).toBeGreaterThan(1);
+  await expect(page.getByRole('heading', { name: 'No models to display' })).toHaveCount(0);
+});
