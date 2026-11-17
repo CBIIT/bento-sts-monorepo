@@ -17,7 +17,7 @@ Objective: define and deliver the Browse Models landing page using the existing 
 | Baseline | [Observed baseline](../../verification/DATATEAM-801/baseline.md) |
 | Output directory | `.sdlc/verification/DATATEAM-801/` |
 
-## Task selection
+## Previous implementation task selection
 
 Rows are work units, not a mandatory sequence. Required inputs may already exist; use them without rerunning an upstream role. Resolve only the decisions affecting the selected row.
 
@@ -48,3 +48,18 @@ These files add Browse Models details to reusable role prompts:
 - [E2E QA](../../prompts/DATATEAM-801/e2e-qa.md)
 
 Issue references in the spec identify requirement sources. They do not impose ticket execution order or require another issue to be closed before this work can run.
+
+## Current selection Existing API migration
+
+Scope authority: user request on 2026-11-17 to revise the requirement. This document update does not authorize starting code changes in this turn. Previous task statuses describe the prior model-cards implementation, not completion of this migration.
+
+| Work | Owner | Required output | Status |
+| --- | --- | --- | --- |
+| Revise spec and contract | Coordinator | AC-14/15/16 and opt-in existing-list contract | Documented |
+| Capture legacy baseline and consumer inventory | API/integration | Default response/order/paging/error baseline and model-cards references | Pending |
+| Extend existing list | Backend/API | `/v2/models/?include_counts=true`; batched accurate counts; default compatibility | Pending |
+| Migrate frontend adapter | UI data | Full-inventory client derivation and regenerated types | Pending |
+| Migrate consumers and remove redundant route | API/integration | QA/CI/client migration and verified endpoint retirement | Pending |
+| Revalidate and review | QA/Critic | Compatibility, real DB/HTTP, browser flows and independent review | Not run |
+
+No new graph, PDF, term search or comparison work is introduced by this migration.

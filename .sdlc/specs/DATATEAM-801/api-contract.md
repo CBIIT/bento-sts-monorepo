@@ -1,6 +1,79 @@
-# DATATEAM-801 API contract proposal
+# DATATEAM-801 API contract
 
-Status: proposed; re-investigated through MCP on 2026-11-17. Resolve the [spec decisions](spec.md#open-decisions) affecting each operation before freezing its interface. Existing FastAPI OpenAPI remains the authority for shipped endpoints.
+Status: approved requirement direction, 2026-11-17; implementation migration NOT STARTED. The user selected extension of existing APIs instead of a separate model-card endpoint. This document supersedes the former `/v2/model-cards` target contract. The running application still uses that endpoint until migration is implemented and verified.
+
+## Approved interface
+
+Extend `GET /v2/models/` with `include_counts: boolean = false`. Keep the existing top-level array and existing model fields. Reuse existing node/detail endpoints. Do not add a new public endpoint for Browse Models.
+
+| Request | Required behavior |
+| --- | --- |
+| `/v2/models/` | Existing response and behavior unchanged; no `counts` field and no aggregate-query cost |
+| `/v2/models/?include_counts=false` | Same behavior as the default request |
+| `/v2/models/?include_counts=true` | Existing model records with a required `counts` object on every returned item |
+| Existing `skip` and `limit` | Preserve existing validation, ordering and paging semantics in both modes; do not import the model-cards page-size rules |
+| `/v2/models/count` | Preserve count of model records, including versions; do not redefine as distinct names |
+
+The default response must not gain `counts: null`, an envelope, or renamed fields. Choose response models/serialization that enforce this and represent both modes accurately in OpenAPI. Do not alter the shared Model schema in a way that changes other endpoints.
+
+Example opt-in item (existing optional fields omitted here only for readability):
+
+```json
+{
+  "type": "Model",
+  "name": "C3DC",
+  "version": "4.0.5",
+  "is_latest_version": true,
+  "counts": { "nodes": 12, "properties": 126, "relationships": 15 }
+}
+```
+
+These values are illustrative observations, not fixture assertions.
+
+## Backend responsibilities
+
+- Return existing model metadata; the stored `is_latest_version` flag is not rewritten to a computed current flag.
+- For opt-in requests, count distinct stored `node`, `property`, and `relationship` entities by exact model name/version. Include unowned properties and relationships missing endpoints, per the approved policy.
+- Aggregate labels separately to avoid join multiplication; use a batched read rather than one database query per model. Establish a consistent read/cache boundary for metadata and statistics.
+- Zero means a successful query found no entities. Missing/duplicate identities or failed aggregation must not silently become zero.
+- Keep default and opt-in cache results separate. Document freshness and measure actual response size and latency; historical inventory size is not a benchmark.
+
+## Frontend responsibilities
+
+Load the complete model/version inventory with `include_counts=true` before applying search, current selection, sorting or UI pagination. The existing unbounded list mode can supply that inventory; if bounded requests are used, prove completeness before displaying global counts or filtering. Never filter only the currently fetched page.
+
+| Concern | Required client behavior |
+| --- | --- |
+| Identity | Model key = name; version identity = nanoid; do not silently merge inconsistent identities |
+| Current selection | Highest ordered marked version, or highest available if none marked; include all model names including TEST |
+| Version order | Preserve the approved numeric/opaque total-order policy from the current feature; do not change legacy server sorting |
+| Search and filters | Case-insensitive partial model ID/name search intersected with manual selection; clear search restores that selection |
+| Result counts | Compute distinct model names and eligible model/version records from the same filtered collection before UI paging |
+| Sorting and paging | Default name ascending/version descending within a model; existing supported sort controls; reset offset after filter/search changes |
+| Display mapping | Existing name fallback, nullable date, validated repository URL; no invented long names or release dates |
+| State | Preserve current/all, search, selected models, sorting and page state through URL/history/detail navigation |
+| Query caching | Cache full inventory independently of UI filters; derive cards, counts and pages together; prevent stale requests overwriting newer data |
+
+Centralize these rules in one tested frontend adapter. Generate API types from OpenAPI; keep view models distinct from transport types.
+
+## Errors and compatibility
+
+- Preserve legacy list 404 behavior for an empty catalog or empty requested page, including opt-in list requests. Only the inventory list's documented 404 may be mapped to an empty inventory by the UI; do not reinterpret detail-route or infrastructure errors as empty data.
+- Preserve existing paging validation. FastAPI validates the new boolean input; invalid input returns 422.
+- Opt-in statistics/data failures return 503 with a generic documented error response; do not expose query details or credentials. Default-mode error behavior remains unchanged.
+- A valid client-side filter with no matches renders the normal empty state without changing server semantics.
+- Existing detail routes, `/models/count`, and shared reader/version utilities keep their contracts.
+
+## Migration and acceptance
+
+1. Capture default list response, sorting, paging, counts and error baselines.
+2. Implement opt-in counts on the existing route and regenerate OpenAPI types.
+3. Move current selection/search/filter/sort/count/paging behavior into the frontend adapter; preserve approved UI behavior.
+4. Verify real API/MDB integration, default-mode compatibility and browser scenarios, including versions beyond the first page.
+5. Audit all consumers of `/v2/model-cards`, including tests, QA scripts and CI. Remove the endpoint/registration and obsolete dedicated code only after consumers are migrated; preserve reusable aggregation logic. If external consumers are found, resolve migration before removal.
+6. Update runtime and architecture documentation and capture fresh evidence. Historical passes do not validate this migration.
+
+Required edge cases: multiple/no current flags, opaque versions, shared and unowned properties, missing-endpoint relationships, no matching search, empty inventory, failure/retry, URL reload/history, and late/cancelled responses. No database migration or new metadata source is required.
 
 ## MCP evidence and limits
 
@@ -40,7 +113,7 @@ WITH m.name AS name, count(*) AS versions,
 RETURN name, versions, marked ORDER BY name;
 ```
 
-For card statistics, independently count each label using the same bound `$model` and `$version`. This definition includes stored entities even if ownership/endpoints are missing; it remains a D-04 proposal, not a product-approved choice.
+For card statistics, independently count each label using the same bound `$model` and `$version`. This definition includes stored entities even if ownership/endpoints are missing; this stored-entity definition was subsequently approved by the user.
 
 ```cypher
 MATCH (n:node {model:$model, version:$version})
@@ -54,7 +127,7 @@ The observed graph uses `(relationship)-[:has_src]->(node)`, `(relationship)-[:h
 
 | Existing endpoint or schema | Available behavior | Gap for Browse Models |
 | --- | --- | --- |
-| `GET /v2/models/` | All model records with skip/limit; sorted by name and ascending version | No current-only mode, selected-model filters, card aggregates, or release-date sort |
+| `GET /v2/models/` | All model records with skip/limit; sorted by name and ascending version | No card aggregates; current selection, filters and sort will move to the frontend under the revised contract |
 | `GET /v2/models/count` | Counts model nodes | Not the distinct-model primary count required by 801 |
 | `GET /v2/model/{modelHandle}/versions` | Model versions | Useful for detail navigation, not a complete card response |
 | `GET /v2/model/{modelHandle}/latest-version` | Marked latest selection with ordering fallback | Avoid one frontend request per model; validate policy and identity |
@@ -64,83 +137,3 @@ The observed graph uses `(relationship)-[:has_src]->(node)`, `(relationship)-[:h
 | `Model` response schema | name, handle, version, repository, latest flag, nanoid | No explicit display name, release date, or card statistics |
 
 Evidence: [models router](../../../backend/src/bento_sts/routers/models.py), [model router](../../../backend/src/bento_sts/routers/model.py), [DTOs](../../../backend/src/bento_sts/pymodels.py), and [version comparator](../../../backend/src/bento_sts/utility/version_utils.py).
-
-## Proposed additive interface
-
-`GET /v2/model-cards`
-
-| Input | Proposed meaning |
-| --- | --- |
-| `include_all_versions` | Boolean, default false |
-| Repeated `model` | Proposed model-name keys, matching existing route lookup; omitted means all. Deduplicate values. Define an explicit select-none representation before implementation; an omitted list cannot represent both all and none. |
-| `sort` | Initially `short_name` or `version`. `release_date` remains blocked on an approved metadata source; do not advertise an always-null sort as implemented. |
-| `direction` | `asc` or `desc`; default name ascending, with version descending as the within-model default |
-| `skip`, `limit` | Nonnegative offset and a bounded positive page size; defaults/cap await D-09 |
-
-No free-text `q` parameter is included until D-05 distinguishes model filtering from Global Search. Define deterministic secondary keys, null-date placement, and cross-model version sorting before freezing the contract.
-
-### Response fields
-
-| Field | Proposed semantics |
-| --- | --- |
-| `items[].model_id` | Proposed `model.name`, shared by all versions; document rename policy before declaring it immutable |
-| `items[].version_id` | `model.nanoid`; populated and unique across the 223 inspected model records. Stability across reloads and global entity uniqueness were not verified |
-| `items[].short_name`, `items[].display_name` | `short_name = model.name`; proposed `display_name` fallback to that same name until an approved long-name source exists |
-| `items[].version`, `items[].is_current` | Version label and result of the agreed current-selection policy |
-| `items[].release_date` | ISO date or null; currently no source field exists on model records. Do not substitute `_commit`, ingestion time, or design date |
-| `items[].external_url` | Proposed `model.repository` or null, explicitly labeled as repository; validate URL scheme and destination policy |
-| `items[].counts.nodes` | Distinct model-version node count |
-| `items[].counts.properties` | Proposed distinct `property` nodes matching model/version, including relationship-owned and unowned properties; D-04 must approve this definition |
-| `items[].counts.relationships` | Proposed distinct `relationship` nodes matching model/version, including missing-endpoint records; D-04 must approve stored versus connected semantics |
-| `counts.models` | Distinct matching model identities, before paging |
-| `counts.model_versions` | Distinct matching model/version identities, before paging |
-| `page.skip`, `page.limit`, `page.total` | Applied page parameters; total is matching cards, equal to model_versions for this result |
-
-These names and nullability rules are proposals. Unknown source data must not silently become zero. Before implementation, determine whether unavailable card statistics are a data-quality error or explicitly nullable with an agreed UI representation.
-
-## Current selection and version ordering
-
-Proposed policy: group by model name; use the highest ordered marked version when marks exist; otherwise select the highest ordered available version. This mirrors the intent of the existing latest-version route and includes the single unmarked `CRDCSubmission` record. `is_current` means the result of this policy, not a copy of the stored boolean.
-
-The shipped comparator attempts semver, then extracts a numeric base. It has no safe general ordering for values such as `TBD` when a comparison is required. Do not claim that it handles arbitrary version strings. Before implementation, define a total order for numeric, suffix, nonnumeric, and missing labels, with deterministic name/version/nanoid tie-breakers. Preserve existing route behavior while implementing and testing the new operation's policy. Missing or duplicate identities must surface as data-quality failures rather than be silently merged.
-
-`TEST` is present among model names. Visibility/exclusion of test or internal models is a product policy, not something to infer from the server name or silently hard-code. The observed count of 15 is the unfiltered inventory.
-
-## Processing rules to finalize
-
-1. Resolve selected model identities and the current-version policy.
-2. Form the eligible model/version set; do not select the current version from an already paged subset.
-3. Apply agreed filters and derive both counts from that same eligible set.
-4. Sort with stable keys, page results, and aggregate statistics without join multiplication.
-5. Return cards and counts from a consistent read. Document the transaction/cache approach; separate independently cached reads must not create incompatible totals.
-
-The current cache key is `(query, tuple(sorted(params.items())), raise_on_empty)`. A list-valued filter parameter makes this key unhashable. Implementation must canonicalize cache keys for repeated filters (including deduplication/order) while retaining supported Cypher parameter values. This is a concrete integration gap, not an already supported feature.
-
-The current default cache TTL is 28,800 seconds (8 hours), configurable by `STS_CACHE_TTL`. Agree freshness/invalidation under D-09. Cache the complete cards/counts response consistently; independent cached reads can disagree. MCP inventory size does not establish endpoint latency or an appropriate page cap.
-
-Stored counts can legitimately be zero after a successful query. Query failure, unknown scope, or unavailable statistics must not be converted to zero. Check model-version existence separately from entity counts. The inspected model pairs were unique, but duplicate-handling checks remain required for future data.
-
-## Errors and compatibility
-
-- Proposed new-list behavior: a valid empty result returns HTTP 200 with an empty list and zero result counts.
-- Invalid enums, malformed paging values, and limits beyond the agreed cap return HTTP 422.
-- Proposed infrastructure failure behavior: HTTP 503 with a generic message; specify a typed error envelope before generating frontend types.
-- Decide how stale cache results and missing critical metadata are surfaced. Do not present failure as an empty success.
-- Existing endpoints retain their response shape, sorting, count meaning, and 404 behavior. Do not globally change MDBReader empty-result handling.
-- Validate sort fields through an allowlist and bind Cypher parameters. Do not accept caller-supplied Cypher fragments.
-
-## Decisions still required
-
-- D-01: approve model-name identity, display-name fallback, repository destination, and a release-date source (or defer date sort).
-- D-02: approve fallback current selection, total version ordering, and visibility of test/internal models.
-- D-03: approve filtered pre-pagination count semantics.
-- D-04: choose stored versus connected entity counts and the treatment of unowned properties.
-- D-09: agree page limits, response budget, and cache freshness; no performance benchmark was run.
-
-One additive aggregate endpoint remains the recommendation. Existing routes can supply catalog and detail primitives but cannot return the complete card statistics, coherent counts, and current selection in one response. No database migration or metadata-enrichment source has been approved by this investigation.
-
-## OpenAPI handoff
-
-After contract agreement, the API role implements Pydantic schemas and exposes the endpoint in FastAPI OpenAPI. Select a TypeScript generator in the frontend foundation task; the user's choice of OpenAPI types does not select a particular generator package. Document deterministic generation and check for contract drift in CI.
-
-The UI-data role consumes generated types without edits. Hand-written transport errors/view models must be clearly distinguished from generated API types. A schema change triggers consumer typechecking and relevant integrated E2E even when only backend paths changed.

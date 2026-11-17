@@ -30,7 +30,7 @@ This excludes the cicd parameter variant while retaining tests without a `local`
 
 A focused comparator check can use `python -m pytest -o addopts= tests/test_version_sorting.py` once dependencies are available. New-test commands must name the selected task's actual files.
 
-Frontend scripts do not exist in the tracked checkout. The following script contract is proposed for recovered/initialized source, not currently runnable commands:
+Frontend scripts exist under `frontend/package.json`. Recheck them at migration execution time; the established checks are:
 
 - `npm run typecheck`: TypeScript check.
 - `npm run lint`: configured lint rules.
@@ -38,7 +38,7 @@ Frontend scripts do not exist in the tracked checkout. The following script cont
 - `npm run build`: production Vite build.
 - `npm run test:e2e`: approved Playwright project(s) against the dedicated local stack.
 
-Confirm package manager/lockfile and replace examples with verified commands before running frontend checks.
+Confirm package manager/lockfile and scripts before running frontend checks.
 
 ## Fixture design
 
@@ -81,3 +81,18 @@ Write results to the output directory in the task plan. Use `evidence/<run-id>/`
 Each scenario records expected result, actual result, status, environment, reproduction steps, evidence path, and owner. Reviewer findings include severity, file location, acceptance ID, and rerun disposition. Unit tests cannot establish browser execution, design fidelity, or reviewer independence.
 
 Task completion follows its selected criteria and gates. Full-feature completion additionally requires the agreed integration scenarios and unresolved findings to be addressed.
+
+## Existing API migration verification
+
+Status: planned, NOT RUN. Previous model-cards and frontend test results do not establish migration correctness.
+
+| Boundary | Required checks |
+| --- | --- |
+| Default API compatibility (AC-14) | Compare omitted/false `include_counts` against pre-change baseline: exact response fields (no added null counts), order, skip/limit, validation, empty 404 and existing errors; prove no count aggregation runs in default mode |
+| Opt-in API (AC-14) | Existing array shape with counts on every item; real stored-entity counts; zero entities versus failure; shared/unowned properties and missing endpoints; 422 invalid boolean; 503 invalid/failed aggregates; batched query behavior |
+| Consumer semantics (AC-15) | Complete inventory before current/filter/sort/count/page derivation; fixtures beyond first page; approved total version order, multiple/no flags, TEST visibility, selection/search intersection and reset |
+| UI regression (AC-15) | Preserve cards, summaries, detail selection, loading/error/empty states, URL/history/reload, rapid search/toggles and scoped design/accessibility |
+| Retirement (AC-16) | Search clients, tests, scripts and CI for model-cards calls; migrate dependencies before removing route and OpenAPI operation; check possible external consumers |
+| Handoff | Generate types deterministically; typecheck/lint/Vitest/build; focused backend and real HTTP/DB tests; applicable browser tests and independent review on the final snapshot |
+
+Record inventory payload size and latency before/after. Retain `/models/count` semantics; frontend distinct model count must not use this endpoint as a distinct-name count. No production performance claim without measurement.

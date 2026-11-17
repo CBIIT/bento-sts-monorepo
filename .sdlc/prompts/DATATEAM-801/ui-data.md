@@ -1,14 +1,7 @@
-# Browse Models UI data assignment
+# Browse Models ui-data assignment
 
-Use the [shared UI-data role](../roles/ui-data.md) with the [task plan](../../tasks/DATATEAM-801/plan.md). Select UI data integration and use the plan's contract, source decision, file scope, and verification inputs.
+Use the [shared role](../roles/ui-data.md) with the [task plan](../../tasks/DATATEAM-801/plan.md) and revised [API contract](../../specs/DATATEAM-801/api-contract.md). Follow the requested mode; this requirements update does not start implementation.
 
-## Feature details
+Consume `/v2/models/?include_counts=true` using regenerated types. Fetch the complete inventory and centralize current selection, search/manual filters, stable sorting, result totals and UI paging in a tested adapter. Preserve URL/history/detail state and name/date fallbacks. Keep inventory query caching separate from view state. Do not compute global results from a partial page.
 
-- Generate OpenAPI types and provide the model-card client and TanStack Query hook.
-- Include model selection, current/all-version mode, sort, and paging in the query key.
-- Keep cards and counts from the same response during filter transitions.
-- Cover loading, empty, error/retry, rapid toggles, and stale-response handling.
-- Add URL/history behavior only as defined in the feature contract.
-- Keep Global Search separate from model filtering until its semantics are decided.
-
-Contract fixtures support hook tests while live API integration is pending.
+Record actual commands/results and distinguish unit stubs from real DB/HTTP evidence. Existing historical passes are not migration validation.

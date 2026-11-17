@@ -1,13 +1,7 @@
-# Browse Models API assignment
+# Browse Models api assignment
 
-Use the [shared API role](../roles/api.md) with the [task plan](../../tasks/DATATEAM-801/plan.md). Select the HTTP-interface row and consume its linked API contract and service interface.
+Use the [shared role](../roles/api.md) with the [task plan](../../tasks/DATATEAM-801/plan.md) and revised [API contract](../../specs/DATATEAM-801/api-contract.md). Follow the requested mode; this requirements update does not start implementation.
 
-## Feature details
+Extend existing `/v2/models/` with optional `include_counts` (default false). Preserve default serialization, ordering, paging and errors; opt-in adds counts to each item in the array. Document both modes and 503 aggregate failure in OpenAPI. Do not add a new endpoint. Retire model-cards only after migration verification and consumer audit.
 
-- Finalize the proposed additive `/v2/model-cards` request/response contract for the selected slice.
-- Expose cards and their filtered counts together, with agreed paging, sorting, nullability, and errors.
-- Preserve `/v2/models/`, `/v2/models/count`, and existing detail-route behavior.
-- Keep application wiring to the scoped import/registration changes.
-- Verify HTTP validation, OpenAPI output, empty-result semantics, and real service integration.
-
-HTTP unit work can use the published service contract before real database integration is ready. Record those checks separately.
+Record actual commands/results and distinguish unit stubs from real DB/HTTP evidence. Existing historical passes are not migration validation.

@@ -83,3 +83,15 @@ Resolve only decisions needed by the selected task row. Independent rows can pro
 The [API contract proposal](api-contract.md) is the canonical planning location for request and response fields. The [verification plan](../../tasks/DATATEAM-801/verification-plan.md) maps these acceptance criteria to checks.
 
 Complete individual task rows against their criteria and applicable checks. Complete the landing-page feature when its agreed acceptance criteria, compatibility checks, independent review, and real API/DB/browser verification are satisfied.
+
+## Approved existing API migration
+
+The user requested revising the requirement to reuse existing backend APIs. Extend `/v2/models/` using `include_counts=true` for model/version node/property/relationship counts. Preserve the default response, ordering, paging, count meaning and legacy errors. Keep existing detail routes. Do not introduce another public endpoint for this feature.
+
+The frontend owns current-version selection, search, model filters, sorting, distinct totals and UI pagination over the full inventory. Preserve all previously approved behavior and data policies. Remove `/v2/model-cards` only after consumer migration and compatibility/E2E verification. The running implementation has not yet been migrated.
+
+| ID | Additional acceptance criterion |
+| --- | --- |
+| AC-14 | Default `/v2/models/` consumers receive the unchanged contract; opting in adds accurate model/version statistics without per-model query fan-out. |
+| AC-15 | Client derivation over the full inventory preserves current selection, search/filter/sort, totals, paging and URL/detail behavior. |
+| AC-16 | Audit and migrate consumers before removing `/v2/model-cards`; publish regenerated types and fresh compatibility, integration and browser evidence. |
